@@ -355,12 +355,6 @@ void ExibirPrograma(Programa *programa) {
 //	Mostrar_Excucao(atual->prox);
 //}
 
-//função que simula a execução do nosso programa (FALTA FINALIZAR)
-//void simulaExecucao(Programa *programa, Variavel **pv)
-//{
-//	
-//}
-
 //função que contem o menu do nosso simulador de execução
 char menu()
 {
@@ -368,13 +362,241 @@ char menu()
 	printf("[F8] - Executar \t"); //F8 = 66
 	printf("[F9] - Memoria RAM \t"); //F9 = 67
 	printf("[F10] - Tela\t"); //F10 = 68
+	printf("\n[ESC] - Sair"); // ESC = 27
 	return getch();
+}
+
+// ------------------//-----------------------//--------------------//------------//---------
+//FUNÇÕES QUE AINDA FALTA CRIAR
+// ------------------//-----------------------//--------------------//------------//---------
+
+//struct TpControle
+//{
+//	int ide, l, c;
+//	Programa *local;
+//	struct TpControle *prox;
+//};
+//typedef struct TpControle Controle;
+
+//struct TpFuncoes
+//{
+//	int l;
+//	Programa *local;
+//	char def[TF];
+//	struct TpFuncoes
+//};
+//typedef struct TpFuncoes Funcoes;
+
+//struct TpControleFor
+//{
+//	int start, stop, step, atual;
+//	char variavel[30];
+//	struct TpControleFor *prox;
+//};
+//typedef struct TpControleFor controleFor;
+
+//struct TpListaEncadeada
+//{
+//	char info[100];
+//	struct TpListaEncadeada *prox;
+//};
+//typedef struct TpListaEncadeada listaEncadeada;
+
+//void initC(Controle **controle)
+
+//void initLE(listaEncadeada **LE)
+
+//void initF(Funcoes **f)
+
+//char isEmptyF(Funcoes *f)
+
+//void limpaTela(int lin1, int lin2, int col1, int col2)
+
+//void ram(Variavel *pv)
+
+//void exibirFunction(Funcoes *f)
+
+//void mostrarLinha(Programa *p, int lin)
+
+//função que simula a execução do nosso programa (FALTA FINALIZAR)
+void simulaExecucao(Programa **programa, Variavel **pv)
+{
+	//(FALTA CRIAR) vai ser usado para o controle de toda a estrutura do programa que está sendo compilado
+	Controle *se, *rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
+	int ideAtual=0, lin=0, col=0, ide, valida=0, l=0, ideFun=0, funL=0, cont=0;
+	
+	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL;
+	
+	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
+	Variavel *pAux;
+	Token *linha, *nova, *linha2;
+	Funcoes *funcoes, *funAux; //FALTA CRIAR -- feito e comentado
+	
+	initC(&se); //FALTA CRIAR -- feito escopo e comentado
+	initC(&rep); //FALTA CRIAR -- feito escopo e comentado
+	
+	char op, seVar='0', rep='0', nomeArquivo[50];
+	
+	//vai ser utilizado para o controle do for presente no programa .js
+	Variavel *var;
+	char *variavel;
+	char valorStr[30]; //receber a string que foi passada
+	int start, stop, step; //valores que vão dentro do for
+	controleFor *pFor = NULL; //FALTA CRIAR -- feito e comentado
+	
+	listaEncadeada *listaPrint; //FALTA CRIAR -- feito e comentado
+	initLE(&listaPrint); //FALTA CRIAR -- feito escopo e comentado
+	
+	limpaTela(1, 1, 90, 90); //FALTA CRIAR -- feito escopo e comentado
+	gotoxy(1, 1);
+	
+	//chamando o menu de opcões do programa
+	op = menu();
+	
+	auxP = atual;
+	initF(&funcao); //FALTA CRIAR -- feito escopo e comentado
+	
+	//------------------- ALERTAAAAAAAA -----------------------------------
+	//ESSE BLOCO TODO DO WHILE VAI TER QUE SER FEITO DENTRO DO F7
+	//PORQUE AQUI AINDA NÃO VAMOS ESTAR COM O ARQUIVO .JS ABERTO NEM TOKENRIZADO
+	//PARA CONSEGUIR MUDAR AS POSIÇÕES
+	//vamos andar procurando as funções se caso existir vamos pular elas
+	while(auxP != NULL)
+	{
+		linha = auxP->token;
+		
+		if(strcmp(linha->info, "function") == 0) //verificando se achou um funcao
+		{
+			linha = linha->prox;
+			while(linha != NULL && strcmp(linha->info, " ") == 0) //acho que vai ser "{" no lugar do espaço
+				linha = linha->prox;
+				
+			enqueue(&funcoes,linha->info,l,auxP);
+			l++;
+			
+			//vamos avançar até o final da função - token->info == }
+			while(strcmp(linha->info,"}") != 0)
+			{
+				auxP = auxP->prox;
+				linha = auxP->token;
+				l++;
+			}
+			atual = auxP->prox;
+		}
+		auxP = auxP->prox;
+	}
+	auxP = atual;
+	numUse = auxP;
+	
+	//repetição que vai simular a execução do programa
+	while(op != 27)
+	{
+		switch(op)
+		{
+			case 65: //F7 - Abrir arquivo .js
+				//essa parte aqui era do main
+				printf("\nNome do arquivo: ");
+				fflush(stdin);
+				gets(nomeArquivo);
+				
+				lerArquivo(nomeArquivo, &*programa);
+				
+				break;
+			
+			case 66: //F8 - executar programa
+				limpaTela(1, 1, 90, 90);
+				gotoxy(1,1);
+				
+				if(!isEmptyF(funcoes)) //FALTA CRIAR -- feito escopo e comentado
+					exibirFunction(funcoes); //FALTA CRIAR -- feito escopo e comentado
+				if(numUse == atual)
+				{
+					mostrarLinha(numUse,l); //FALTA CRIAR -- feito escopo e comentado
+					lin = l;
+					col = 1;
+				}
+				else
+					mostrarLinha(numUse,l);
+					
+				gotoxy(col,lin); //move o cursor para proxima linha
+				op = getch(); //ou talvez tenha que ser op = menu();
+				gotoxy(col,lin);
+				
+				//continua a execução enquanto clicar enter = 13
+				while(op == 13 && atual != NULL)
+				{
+					linha = atual->token;
+					ide = 0; //contador para identação do codigo .js
+					
+					//contando o numero de tab para fazer a identação
+					while(strcmp(linha->info,"\t") == 0)
+					{
+						ide++;
+						linha = linha->prox;
+					}
+					
+//					vamos validar se estava em uma repetição se sim vamos retornar para o inicio dela
+//					e tambem validar se estava em um if para fazer ideAtual receber ide
+//					para continuar a execução
+					
+					valida = 0;
+					if(ide != ideAtual)
+					{
+						//codigo para avançar nas repetições ou condições
+						//se a ide aumentou significa que estamos entrando um novo bloco while ou if
+						//se valida =1 vamos pular
+						
+						auxP = atual;
+						l = lin;
+						
+						//verifica as linhas até encontrar a mesma identação ou um bloco que termine
+						while(auxP != NULL && ide > ideAtual)
+						{
+							linha = auxP->token;
+							ide = 0; //reinicia a contagem de identação
+							
+							//TENHO QUE CONTINUAR DAQUIIIIIII!!!!!!!!!!!!!!!!!
+						}
+					}
+				}
+				
+				break;
+				
+			case 67: // F9 - memoria ram
+				//temos que criar ainda a pilha que vai simular a memoria ram em execução
+				ram(*pv); //FALTA CRIAR -- feito escopo e comentado
+				//ja temos pv criado porque é a pilha de variavel, mas ainda falta mais coisa
+				op = getch();
+				
+				break;
+				
+			case 68: //F10 - exibir os prints
+				listaEncadeada *auxLE = listaPrint;
+				limpaTela(1, 1, 90, 90);
+				gotoxy(1,1);
+				printf("\n *** Prints ***\n");
+				while(auxLE != NULL)
+				{
+					printf("\n%s",auxLE->info);
+					auxLE = auxLE->prox;
+				}
+				op = getch();
+				
+				break;
+			
+			case 27:
+				printf("\nPrograma encerrado!");
+		}
+		
+		//chamando o menu de opcões do programa
+		op = menu();
+	}
 }
 
 int main()
 {
 	//lista que vai apontar para a lista de tokens
-    Programa *l = NULL; 
+    Programa *l = NULL; //vou passa l como null, porque vai ler o arquivo dentro da simulação
     
     //lista do tipo pilha que vai guardar todas as informações das nossas variaveis
     Variavel *pilhaVar = NULL;
