@@ -372,7 +372,7 @@ char menu()
 
 //struct TpControle
 //{
-//	int ide, l, c;
+//	int chave, l, c;
 //	Programa *local;
 //	struct TpControle *prox;
 //};
@@ -382,7 +382,7 @@ char menu()
 //{
 //	int l;
 //	Programa *local;
-//	char def[TF];
+//	char function[TF];
 //	struct TpFuncoes
 //};
 //typedef struct TpFuncoes Funcoes;
@@ -410,6 +410,8 @@ char menu()
 
 //char isEmptyF(Funcoes *f)
 
+//char isEmptyC(Controle *c) -- caio ainda não viu
+
 //void limpaTela(int lin1, int lin2, int col1, int col2)
 
 //void ram(Variavel *pv)
@@ -423,7 +425,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 {
 	//(FALTA CRIAR) vai ser usado para o controle de toda a estrutura do programa que está sendo compilado
 	Controle *se, *rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
-	int ideAtual=0, lin=0, col=0, ide, valida=0, l=0, ideFun=0, funL=0, cont=0;
+	int chaveAtual=0, lin=0, col=0, chave, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
 	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL;
 	
@@ -456,38 +458,6 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	auxP = atual;
 	initF(&funcao); //FALTA CRIAR -- feito escopo e comentado
 	
-	//------------------- ALERTAAAAAAAA -----------------------------------
-	//ESSE BLOCO TODO DO WHILE VAI TER QUE SER FEITO DENTRO DO F7
-	//PORQUE AQUI AINDA NÃO VAMOS ESTAR COM O ARQUIVO .JS ABERTO NEM TOKENRIZADO
-	//PARA CONSEGUIR MUDAR AS POSIÇÕES
-	//vamos andar procurando as funções se caso existir vamos pular elas
-	while(auxP != NULL)
-	{
-		linha = auxP->token;
-		
-		if(strcmp(linha->info, "function") == 0) //verificando se achou um funcao
-		{
-			linha = linha->prox;
-			while(linha != NULL && strcmp(linha->info, " ") == 0) //acho que vai ser "{" no lugar do espaço
-				linha = linha->prox;
-				
-			enqueue(&funcoes,linha->info,l,auxP);
-			l++;
-			
-			//vamos avançar até o final da função - token->info == }
-			while(strcmp(linha->info,"}") != 0)
-			{
-				auxP = auxP->prox;
-				linha = auxP->token;
-				l++;
-			}
-			atual = auxP->prox;
-		}
-		auxP = auxP->prox;
-	}
-	auxP = atual;
-	numUse = auxP;
-	
 	//repetição que vai simular a execução do programa
 	while(op != 27)
 	{
@@ -501,9 +471,41 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
+				//------------------- ALERTAAAAAAAA -----------------------------------
+				//ESSE BLOCO TODO DO WHILE VAI TER QUE SER FEITO DENTRO DO F7
+				//PORQUE AQUI AINDA NÃO VAMOS ESTAR COM O ARQUIVO .JS ABERTO NEM TOKENRIZADO
+				//PARA CONSEGUIR MUDAR AS POSIÇÕES
+				//vamos andar procurando as funções se caso existir vamos pular elas
+				while(auxP != NULL)
+				{
+					linha = auxP->token;
+					
+					if(strcmp(linha->info, "function") == 0) //verificando se achou um funcao
+					{
+						linha = linha->prox;
+						while(linha != NULL && strcmp(linha->info, "{") == 0) //acho que vai ser "{" no lugar do espaço
+							linha = linha->prox;
+							
+						enqueue(&funcoes,linha->info,l,auxP);
+						l++;
+						
+						//vamos avançar até o final da função - token->info == }
+						while(strcmp(linha->info,"}") != 0)
+						{
+							auxP = auxP->prox;
+							linha = auxP->token;
+							l++;
+						}
+						atual = auxP->prox;
+					}
+					auxP = auxP->prox;
+				}
+				auxP = atual;
+				numUse = auxP;
+				
 				break;
 			
-			case 66: //F8 - executar programa
+			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				limpaTela(1, 1, 90, 90);
 				gotoxy(1,1);
 				
@@ -526,38 +528,89 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				while(op == 13 && atual != NULL)
 				{
 					linha = atual->token;
-					ide = 0; //contador para identação do codigo .js
 					
-					//contando o numero de tab para fazer a identação
-					while(strcmp(linha->info,"\t") == 0)
+					if(strcmp(linha->info, "{") == 0) //inicio de um bloco de execução
 					{
-						ide++;
-						linha = linha->prox;
+					    // apenas avança uma linha, não precisa de contador
+					    atual = atual->prox;
+					    lin++;
 					}
-					
+					else
+					if(strcmp(linha->info,"}") == 0) //fim do bloco de execução
+					{
+						
+					}
+					else //execução das intrções presente no bloco
+					{
+						
+					}
 //					vamos validar se estava em uma repetição se sim vamos retornar para o inicio dela
-//					e tambem validar se estava em um if para fazer ideAtual receber ide
+//					e tambem validar se estava em um if para fazer chaveAtual receber chave
 //					para continuar a execução
 					
-					valida = 0;
-					if(ide != ideAtual)
+					flag = 0;
+					if(strcmp(linha->info, "{") != 0)
 					{
 						//codigo para avançar nas repetições ou condições
-						//se a ide aumentou significa que estamos entrando um novo bloco while ou if
+						//se as chave aumentou significa que estamos entrando um novo bloco while ou if
 						//se valida =1 vamos pular
 						
 						auxP = atual;
 						l = lin;
 						
-						//verifica as linhas até encontrar a mesma identação ou um bloco que termine
-						while(auxP != NULL && ide > ideAtual)
+						while(auxP != NULL && chave > chaveAtual) 
+						{
+						    linha = auxP->token;
+						    chave = 0;
+						
+						    if(strcmp(linha->info,"}") == 0)
+						        chave++;
+						
+						    if(chave > chaveAtual) 
+							{
+						        l++;
+						        auxP = auxP->prox;
+						    }
+						}
+						
+						//atualizando a linha atual e o contador de linhas
+						if(auxP != NULL)
 						{
 							linha = auxP->token;
-							ide = 0; //reinicia a contagem de identação
-							
-							//TENHO QUE CONTINUAR DAQUIIIIIII!!!!!!!!!!!!!!!!!
+							atual = auxP;
+							lin = l
+						}
+						else
+						{
+							flag = 1;
+							atual = auxP
 						}
 					}
+					
+					//se for igual significa que chegamos ao fim de um bloco, seja if, while ou function
+					if(strcmp(linha->info, "}") == 0)
+					{
+						//codigo para voltar nas estruturas de controle
+						if(!isEmptyC(rep)) //FALTA CRIAR - feito escopo e comentado
+						{
+							//recuperando o topo da pilha da repetição
+							topC(rep,&repAux); //FALTA CRIAR - feito escopo e comentado
+							auxP = repAux->local; //atualiza a linha atual para o inicio da repetição
+							if(repAux->chave >= chave)
+							{
+								atual = repAux->local;
+								linha = atual->token;
+								//chave = 0;
+								
+								if(strcmp(linha->info,"}") == 0)
+								{
+									//ide++;
+									atual = atual->prox;
+								}
+							}
+						}
+					}
+					
 				}
 				
 				break;
