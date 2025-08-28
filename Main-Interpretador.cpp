@@ -35,6 +35,182 @@ struct TpVariavel
 };
 typedef struct TpVariavel Variavel;
 
+//estrutura que vai conter as informações para o controle de exibição do nosso codigo
+struct TpControle
+{
+	int chave, l, c;
+	Programa *local;
+	struct TpControle *prox;
+};
+typedef struct TpControle Controle;
+
+//estrutura que vai conter as informações das functions do nosso programa
+struct TpFuncoes
+{
+	int l;
+	Programa *local;
+	char function[TF];
+	struct TpFuncoes
+};
+typedef struct TpFuncoes Funcoes;
+
+//estrutura que vai controlar a manipulação de bloco for no nosso programa
+struct TpControleFor
+{
+	int start, stop, step, atual;
+	char variavel[30];
+	struct TpControleFor *prox;
+};
+typedef struct TpControleFor controleFor;
+
+//estrutura que vai conter nosso console.log
+struct TpListaEncadeada
+{
+	char info[100];
+	struct TpListaEncadeada *prox;
+};
+typedef struct TpListaEncadeada listaEncadeada;
+
+
+// -- TAD PILHA CONTROLE --
+
+//função que vai inicializar nossa pilha de controle
+void initC(Controle **c)
+{
+	*c = NULL;
+}
+
+//função que verifica se nossa pilha de controle está vazia
+char isEmptyC(Controle *c)
+{
+	return c == NULL
+}
+
+//função que insere informações na nossa pilha de controle
+void pushC(Controle **c, int chave, Programa *p, int lin, int col)
+{
+	Controle *nova = (Controle*)malloc(sizeof(Controle));
+	nova->chave = chave;
+	nova->l = lin;
+	nova->c = col;
+	nova->local = p;
+	nova->prox = *c;
+	*c = nova;
+}
+
+//função que vai retirar as informações da nossa pilha de controle
+Controle popC(Controle **c)
+{
+	Cotrole *aux, cAtual;
+	if(!isEmptyC(*c))
+	{
+		cAtual.chave = (*c)->chave;
+		cAtual.l = (*c)->l;
+		cAtual.c = (*c)->c;
+		cAtual.local = (*c)->local;
+		aux = *c;
+		*c = (*c)->prox;
+		free(aux);
+	}
+	else
+		cAtual.chave = -1;
+		
+	return cAtual;
+}
+
+//função que envia o ultimo elemento da pilha sem modificar ela
+void ultimoC(Controle *c, Controle **auxC)
+{
+	if(!isEmptyC(c))
+	{
+		while(!isEmptyC(c->prox))
+			c = c->prox;
+	}
+	*auxC = c;
+}
+
+void topC(Controle *c, Controle **auxC)
+{
+	*auxC = c;
+}
+
+
+// -- TAD FILA LISTA ENCADEADA --
+
+//função que inicializa a fila de LE
+void initLE(listaEncadeada **le)
+{
+	*le = NULL;
+}
+
+//função que aloca uma nova caixinha para fila de LE
+listaEncadeada *criaCaixaLE(char *info)
+{
+	listaEncadeada *nova = (listaEncadeada*)malloc(sizeof(listaEncadeada));
+	strcpy(nova->info,info);
+	nova->prox = NULL;
+	return nova;
+}
+
+//função que insere informação na fila de LE
+void enqueueLE(listaEncadeada **le, char *info)
+{
+	listaEncadeada *aux = *le, *nova = criaCaixaLE(info);
+	
+	if(aux == NULL)
+		*lista = nova;
+	else
+	{
+		while(aux->prox != NULL)
+			aux = aux->prox;
+			
+		aux->prox = nova;
+	}
+}
+
+//função que retira uma informação da fila de LE
+void dequeueLE(listaEncadeada **le, char *info)
+{}
+	listaEncadeada *aux;
+	
+	if(*le == NULL)
+		strcpy(info, "");
+	else
+	{
+		strcpy(info, (*le)->info);
+		aux = *le;
+		*le = (*le)->prox;
+		free(aux);
+	}
+}
+
+//função que exibe o conteudo da fila LE
+void exibirLE(listaEncadeada *le)
+{
+	listaEncadeada *aux = le;
+	
+	if(aux == NULL)
+		printf("\nLista encadeada de (console.log) esta vazia!");
+	else
+	{
+		printf("Conteudo lista encadeada: ");
+		while(aux != NULL)
+		{
+			printf("%s",aux->info);
+			aux = aux->prox;
+		}
+		printf("\n");
+	}
+}
+
+
+// -- TAD FILA LISTA ENCADEADA --
+
+//void initF(Funcoes **f)
+
+//char isEmptyF(Funcoes *f)
+
+
 // -- TAD PILHA VARIAVEL --
 
 //função que inicializa a pilha da variavel
@@ -370,48 +546,6 @@ char menu()
 //FUNÇÕES QUE AINDA FALTA CRIAR
 // ------------------//-----------------------//--------------------//------------//---------
 
-//struct TpControle
-//{
-//	int chave, l, c;
-//	Programa *local;
-//	struct TpControle *prox;
-//};
-//typedef struct TpControle Controle;
-
-//struct TpFuncoes
-//{
-//	int l;
-//	Programa *local;
-//	char function[TF];
-//	struct TpFuncoes
-//};
-//typedef struct TpFuncoes Funcoes;
-
-//struct TpControleFor
-//{
-//	int start, stop, step, atual;
-//	char variavel[30];
-//	struct TpControleFor *prox;
-//};
-//typedef struct TpControleFor controleFor;
-
-//struct TpListaEncadeada
-//{
-//	char info[100];
-//	struct TpListaEncadeada *prox;
-//};
-//typedef struct TpListaEncadeada listaEncadeada;
-
-//void initC(Controle **controle)
-
-//void initLE(listaEncadeada **LE)
-
-//void initF(Funcoes **f)
-
-//char isEmptyF(Funcoes *f)
-
-//char isEmptyC(Controle *c) -- caio ainda não viu
-
 //void limpaTela(int lin1, int lin2, int col1, int col2)
 
 //void ram(Variavel *pv)
@@ -420,6 +554,8 @@ char menu()
 
 //void mostrarLinha(Programa *p, int lin)
 
+//void posicionaCursor(Programa *p, int lin, int pos)
+
 //função que simula a execução do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
 {
@@ -427,7 +563,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	Controle *se, *rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
 	int chaveAtual=0, lin=0, col=0, chave, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
-	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL;
+	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
 	Variavel *pAux;
@@ -471,34 +607,38 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
-				//------------------- ALERTAAAAAAAA -----------------------------------
-				//ESSE BLOCO TODO DO WHILE VAI TER QUE SER FEITO DENTRO DO F7
-				//PORQUE AQUI AINDA NÃO VAMOS ESTAR COM O ARQUIVO .JS ABERTO NEM TOKENRIZADO
-				//PARA CONSEGUIR MUDAR AS POSIÇÕES
-				//vamos andar procurando as funções se caso existir vamos pular elas
 				while(auxP != NULL)
 				{
-					linha = auxP->token;
+					linha = auxP->token; //recebe a primeira linha
 					
-					if(strcmp(linha->info, "function") == 0) //verificando se achou um funcao
+					if(strcmp(linha->info, "function") == 0) //verificando se achou uma funcao
 					{
-						linha = linha->prox;
-						while(linha != NULL && strcmp(linha->info, "{") == 0) //acho que vai ser "{" no lugar do espaço
-							linha = linha->prox;
-							
+						//vamos inserir a function
 						enqueue(&funcoes,linha->info,l,auxP);
 						l++;
 						
-						//vamos avançar até o final da função - token->info == }
-						while(strcmp(linha->info,"}") != 0)
-						{
+						auxP = auxP->prox;
+						if (auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
 							auxP = auxP->prox;
-							linha = auxP->token;
-							l++;
-						}
-						atual = auxP->prox;
+						
+						linha = auxP->token;
+						
+						
+						while(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "}") != 0)
+				        {
+				            auxP = auxP->prox;
+				            if (auxP != NULL)
+				            {
+				                linha = auxP->token;
+				                l++;
+				            }
+				        }
+				
+				        if(auxP != NULL)
+				        	atual = auxP->prox;
 					}
-					auxP = auxP->prox;
+					if(auxP != NULL)
+            			auxP = auxP->prox;
 				}
 				auxP = atual;
 				numUse = auxP;
@@ -528,89 +668,90 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				while(op == 13 && atual != NULL)
 				{
 					linha = atual->token;
+					chave = 0; //nosso cotador que vai indicar dentro de quantos bloco estamos
 					
 					if(strcmp(linha->info, "{") == 0) //inicio de um bloco de execução
 					{
 					    // apenas avança uma linha, não precisa de contador
 					    atual = atual->prox;
-					    lin++;
-					}
-					else
-					if(strcmp(linha->info,"}") == 0) //fim do bloco de execução
-					{
-						
-					}
-					else //execução das intrções presente no bloco
-					{
-						
+					    chave++;
 					}
 //					vamos validar se estava em uma repetição se sim vamos retornar para o inicio dela
 //					e tambem validar se estava em um if para fazer chaveAtual receber chave
 //					para continuar a execução
 					
 					flag = 0;
-					if(strcmp(linha->info, "{") != 0)
+					if(chave != chaveAtual)
 					{
-						//codigo para avançar nas repetições ou condições
-						//se as chave aumentou significa que estamos entrando um novo bloco while ou if
-						//se valida =1 vamos pular
-						
-						auxP = atual;
-						l = lin;
-						
-						while(auxP != NULL && chave > chaveAtual) 
+						if(chave > chaveAtual)
 						{
-						    linha = auxP->token;
-						    chave = 0;
-						
-						    if(strcmp(linha->info,"}") == 0)
-						        chave++;
-						
-						    if(chave > chaveAtual) 
+							//codigo para avançar nas repetições ou condições
+							//se as chave aumentou significa que estamos entrando um novo bloco while ou if
+							//se valida =1 vamos pular
+							
+							auxP = atual;
+							l = lin;
+							
+							while(auxP != NULL && chave > chaveAtual)
 							{
-						        l++;
-						        auxP = auxP->prox;
-						    }
-						}
-						
-						//atualizando a linha atual e o contador de linhas
-						if(auxP != NULL)
-						{
-							linha = auxP->token;
-							atual = auxP;
-							lin = l
-						}
-						else
-						{
-							flag = 1;
-							atual = auxP
-						}
-					}
-					
-					//se for igual significa que chegamos ao fim de um bloco, seja if, while ou function
-					if(strcmp(linha->info, "}") == 0)
-					{
-						//codigo para voltar nas estruturas de controle
-						if(!isEmptyC(rep)) //FALTA CRIAR - feito escopo e comentado
-						{
-							//recuperando o topo da pilha da repetição
-							topC(rep,&repAux); //FALTA CRIAR - feito escopo e comentado
-							auxP = repAux->local; //atualiza a linha atual para o inicio da repetição
-							if(repAux->chave >= chave)
-							{
-								atual = repAux->local;
-								linha = atual->token;
-								//chave = 0;
-								
-								if(strcmp(linha->info,"}") == 0)
+							    linha = auxP->token;
+							    chave = 0;
+							
+							    if(strcmp(linha->info,"{") == 0) //se eu achei uma chave eu dou ++
+							        chave++;
+							
+							    if(chave > chaveAtual) 
 								{
-									//ide++;
-									atual = atual->prox;
+							        l++;
+							        auxP = auxP->prox;
+							    }
+							}
+							
+							//atualizando a linha atual e o contador de linhas
+							if(auxP != NULL)
+							{
+								linha = auxP->token;
+								atual = auxP;
+								lin = l
+							}
+							else
+							{
+								flag = 1;
+								atual = auxP
+							}
+						}
+						if(chave < chaveAtual)
+						{
+							if(!isEmpty(rep))
+							{
+								topC(rep,&repAux);
+								auxP = repAux->local;
+								if(repAux->chave >= chave)
+								{
+									atual = repAux->local;
+									linha = atual->token;
+									chave = 0;
+									if(strcmp(linha->info,"}") == 0)
+									{
+										chave++;
+										atual = atual->prox;
+									}
+										
+									linha = atual;
+									chaveAtual = repAux->chave;
+									lin = repAux->l;
+									col = repAux->c;
+									repAux = popC(&rep);
 								}
+							}
+							if(!isEmptyC(se))
+							{
+								chaveAtual = chave;
+								ifAux = pop(&se);
+								seVar = 1;
 							}
 						}
 					}
-					
 				}
 				
 				break;
