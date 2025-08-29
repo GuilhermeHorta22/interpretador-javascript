@@ -72,6 +72,54 @@ struct TpListaEncadeada
 typedef struct TpListaEncadeada listaEncadeada;
 
 
+//CAIO - POSICIONAR JUNTO COM FUNÇÕES PARECIDAS
+int isTipoVariavel(char *info) 
+{
+	return !strcmp(info, "LET") || !strcmp(info, "CONST");
+}
+
+//CAIO - ESSA FUNCÇÃO SERIA A EXECUÇÃO DO PROGRAMA EM SI, FEITA APENAS A DECLARAÇÃO DE VARIAVEL
+void executaPrograma(Programa *programa)
+{
+	Variavel auxVar;
+	Pilha *pv;
+	initPV(&pv);
+	TpToken *auxToken;
+	auxToken = programa->token;
+	Programa *auxPrograma;
+	auxPrograma = programa;
+	
+	char auxTipo[7]; //Salvar o tipo de variável quando declarada
+	
+	while(auxPrograma != NULL)
+	{
+		while(auxToken != NULL)
+		{
+			if(isTipoVariavel(auxToken->info)) //verifica se o token é definição de variável LET ou CONST
+			{
+					strcpy(auxTipo, auxToken->info); // Salvar o tipo da váriavel para tratar da forma adequada
+					auxToken = auxToken->prox;
+					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estará na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' após declaração de variavel
+					if(strcmp(auxTipo,"LET")==0)
+					{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
+					}
+					else //Então é CONST
+					{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+					}
+					pushPV(&pv,auxVar); //Passar a pilha, e a variavel
+			}
+		}
+	} 
+	
+}
+
 // -- TAD PILHA CONTROLE --
 
 //função que vai inicializar nossa pilha de controle
@@ -226,11 +274,11 @@ char isEmptyPV(Variavel *pilhaVar)
 }
 
 //função que insere a variavel dentro da nossa pilha de variavel
-void pushPV(Variavel **pilhaVar, char *valor, char *identificador, Programa *programa)
+void pushPV(Variavel **pilhaVar, Variavel auxVar)
 {
 	Variavel *nova = (Variavel*)malloc(sizeof(Variavel));
-	strcpy(nova->valor, valor);
-	strcpy(nova->identificador, identificador);
+	strcpy(nova->valor, auxVar.valor);
+	strcpy(nova->identificador, auxVar.identificador);
 	nova->ponteiro = programa;
 	
 	nova->prox = *pilhaVar;
@@ -555,6 +603,8 @@ char menu()
 //void mostrarLinha(Programa *p, int lin)
 
 //void posicionaCursor(Programa *p, int lin, int pos)
+
+
 
 //função que simula a execução do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
