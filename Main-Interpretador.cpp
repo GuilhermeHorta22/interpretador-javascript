@@ -611,7 +611,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 {
 	//(FALTA CRIAR) vai ser usado para o controle de toda a estrutura do programa que está sendo compilado
 	Controle *se, *rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
-	int chaveAtual=0, lin=0, col=0, chave, flag=0, l=0, chaveFun=0, funL=0, cont=0;
+	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
 	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
@@ -668,16 +668,25 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 						l++;
 						
 						auxP = auxP->prox;
-						if (auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
+						if(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
+						{
 							auxP = auxP->prox;
+							chave++;
+						}
+							
+						if(auxP != NULL)
+							linha = auxP->token;
 						
-						linha = auxP->token;
-						
-						
-						while(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "}") != 0)
+						while(auxP != NULL && auxP->token != NULL && chave > 0)
 				        {
+				        	if(strcmp(linha->info,"{") == 0)
+				        		chave++;
+				        	else
+				        	if(strcmp(linha->info,"}") == 0)
+				        		chave--;
+				        	
 				            auxP = auxP->prox;
-				            if (auxP != NULL)
+				            if(auxP != NULL)
 				            {
 				                linha = auxP->token;
 				                l++;
@@ -687,7 +696,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				        if(auxP != NULL)
 				        	atual = auxP->prox;
 					}
-					if(auxP != NULL)
+					else //andar se caso não achou um function
             			auxP = auxP->prox;
 				}
 				auxP = atual;
