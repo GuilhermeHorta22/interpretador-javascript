@@ -422,11 +422,11 @@ int isTipoVariavel(char *info)
 }
 
 //CAIO - ESSA FUNCÇÃO SERIA A EXECUÇÃO DO PROGRAMA EM SI, FEITA APENAS A DECLARAÇÃO DE VARIAVEL
-void executaPrograma(Programa *programa)
+void executaPrograma(Programa *programa, Variavel **pv)
 {
 	Variavel auxVar;
-	Variavel *pv;
-	initPV(&pv);
+	//Variavel *pv;
+	//initPV(&pv);
 	TpToken *auxToken;
 	auxToken = programa->token;
 	Programa *auxPrograma;
@@ -456,9 +456,11 @@ void executaPrograma(Programa *programa)
 						auxToken = auxToken->prox;
 						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
 					}
-					pushPV(&pv,auxVar); //Passar a pilha, e a variavel
+					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
+			auxToken = auxToken->prox;
 		}
+		auxPrograma = auxPrograma->prox;
 	} 
 	
 }
@@ -584,8 +586,9 @@ void ExibirPrograma(Programa *programa) {
 void ram(Variavel *pv)
 {
 	//se caso for colocar moldura depois
-	limpaTela(1, 1, 90, 90);
-	gotoxy(1,1);
+	//limpaTela(1, 1, 90, 90);
+	system("cls");
+	//gotoxy(1,1);
 	
 	printf("\n ----------- MEMORIA RAM ----------");
 	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
@@ -626,6 +629,7 @@ char menu()
 
 
 //função que simula a execução do nosso programa (FALTA FINALIZAR)
+/*
 void simulaExecucao(Programa **programa, Variavel **pv)
 {
 	//(FALTA CRIAR) vai ser usado para o controle de toda a estrutura do programa que está sendo compilado
@@ -864,7 +868,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 		op = menu();
 	}
 }
-
+*/
 int main()
 {
 	//lista que vai apontar para a lista de tokens
@@ -896,13 +900,13 @@ int main()
 			case 66: //F8
 				//aqui eu vou chamar a execução do programa linha a linha
 				//simulaExecucao(l, &pilhaVar);
-				
+				executaPrograma(l,&pilhaVar);
 				break;
 				
 			case 67: //F9
 				//aqui eu vou mostrar a nossa memoria ram que vai ser nossa pilha de variavel
 				printf("\n*** MEMORIA RAM ***\n");
-				
+				ram(pilhaVar);
 				
 				break;
 			
