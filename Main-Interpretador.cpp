@@ -26,7 +26,7 @@ struct TpPrograma
 };
 typedef struct TpPrograma Programa;
 
-//estrutura que vai conter as informações das nossas variaveis e fazer o papel da RAM
+//estrutura que vai conter as informacoes das nossas variaveis e fazer o papel da RAM
 struct TpVariavel
 {
 	char identificador[TF], valor[TF];
@@ -35,7 +35,7 @@ struct TpVariavel
 };
 typedef struct TpVariavel Variavel;
 
-//estrutura que vai conter as informações para o controle de exibição do nosso codigo
+//estrutura que vai conter as informacao para o controle de exibiï¿½ï¿½o do nosso codigo
 struct TpControle
 {
 	int chave, l, c;
@@ -44,7 +44,7 @@ struct TpControle
 };
 typedef struct TpControle Controle;
 
-//estrutura que vai conter as informações das functions do nosso programa
+//estrutura que vai conter as informacao das functions do nosso programa
 struct TpFuncoes
 {
 	int l;
@@ -54,7 +54,7 @@ struct TpFuncoes
 };
 typedef struct TpFuncoes Funcoes;
 
-//estrutura que vai controlar a manipulação de bloco for no nosso programa
+//estrutura que vai controlar a manipulacao de bloco for no nosso programa
 struct TpControleFor
 {
 	int start, stop, step, atual;
@@ -75,19 +75,19 @@ typedef struct TpListaEncadeada listaEncadeada;
 
 // -- TAD PILHA CONTROLE --
 
-//função que vai inicializar nossa pilha de controle
+//funcao que vai inicializar nossa pilha de controle
 void initC(Controle **c)
 {
 	*c = NULL;
 }
 
-//função que verifica se nossa pilha de controle está vazia
+//funcao que verifica se nossa pilha de controle estï¿½ vazia
 char isEmptyC(Controle *c)
 {
 	return c == NULL;
 }
 
-//função que insere informações na nossa pilha de controle
+//funcao que insere informacao na nossa pilha de controle
 void pushC(Controle **c, int chave, Programa *p, int lin, int col)
 {
 	Controle *nova = (Controle*)malloc(sizeof(Controle));
@@ -99,7 +99,7 @@ void pushC(Controle **c, int chave, Programa *p, int lin, int col)
 	*c = nova;
 }
 
-//função que vai retirar as informações da nossa pilha de controle
+//funcaoo que vai retirar as informacao da nossa pilha de controle
 Controle popC(Controle **c)
 {
 	Controle *aux, cAtual;
@@ -119,7 +119,7 @@ Controle popC(Controle **c)
 	return cAtual;
 }
 
-//função que envia o ultimo elemento da pilha sem modificar ela
+//funcao que envia o ultimo elemento da pilha sem modificar ela
 void ultimoC(Controle *c, Controle **auxC)
 {
 	if(!isEmptyC(c))
@@ -138,13 +138,13 @@ void topC(Controle *c, Controle **auxC)
 
 // -- TAD FILA LISTA ENCADEADA --
 
-//função que inicializa a fila de LE
+//funcao que inicializa a fila de LE
 void initLE(listaEncadeada **le)
 {
 	*le = NULL;
 }
 
-//função que aloca uma nova caixinha para fila de LE
+//funcao que aloca uma nova caixinha para fila de LE
 listaEncadeada *criaCaixaLE(char *info)
 {
 	listaEncadeada *nova = (listaEncadeada*)malloc(sizeof(listaEncadeada));
@@ -153,7 +153,7 @@ listaEncadeada *criaCaixaLE(char *info)
 	return nova;
 }
 
-//função que insere informação na fila de LE
+//funcao que insere informacao na fila de LE
 void enqueueLE(listaEncadeada **le, char *info)
 {
 	listaEncadeada *aux = *le, *nova = criaCaixaLE(info);
@@ -169,7 +169,7 @@ void enqueueLE(listaEncadeada **le, char *info)
 	}
 }
 
-//função que retira uma informação da fila de LE
+//funcao que retira uma informacao da fila de LE
 void dequeueLE(listaEncadeada **le, char *info)
 {
 	listaEncadeada *aux;
@@ -185,7 +185,7 @@ void dequeueLE(listaEncadeada **le, char *info)
 	}
 }
 
-//função que exibe o conteudo da fila LE
+//funcao que exibe o conteudo da fila LE
 void exibirLE(listaEncadeada *le)
 {
 	listaEncadeada *aux = le;
@@ -207,26 +207,52 @@ void exibirLE(listaEncadeada *le)
 
 // -- TAD FILA LISTA ENCADEADA --
 
-//void initF(Funcoes **f)
+void initF(Funcoes **f)
+{
+	*f = NULL;
+}
 
-//char isEmptyF(Funcoes *f)
+char isEmptyF(Funcoes *f)
+{
+	return f == NULL;
+}
+
+void enqueueF(Funcoes **f, char *fun, int l, Programa *local)
+{
+	Funcoes *nova = (Funcoes*)malloc(sizeof(Funcoes));
+	
+	strcpy(nova->function, fun);
+	nova->l = l;
+	nova->local = local;
+	nova->prox = NULL;
+	
+	if(isEmptyF(*f))
+		*f = nova;
+	else
+	{
+		Funcoes *aux = *f;
+		while(aux->prox != NULL)
+			aux = aux->prox;
+		aux->prox = nova;
+	}
+}
 
 
 // -- TAD PILHA VARIAVEL --
 
-//função que inicializa a pilha da variavel
+//funcao que inicializa a pilha da variavel
 void initPV(Variavel **pilhaVar)
 {
 	*pilhaVar = NULL;
 }
 
-//função que verifica se a pilha de variavel é nula ou vazia
+//funcao que verifica se a pilha de variavel e nula ou vazia
 char isEmptyPV(Variavel *pilhaVar)
 {
 	return pilhaVar == NULL;
 }
 
-//função que insere a variavel dentro da nossa pilha de variavel
+//funcao que insere a variavel dentro da nossa pilha de variavel
 void pushPV(Variavel **pilhaVar, Variavel auxVar)
 {
 	Variavel *nova = (Variavel*)malloc(sizeof(Variavel));
@@ -238,7 +264,7 @@ void pushPV(Variavel **pilhaVar, Variavel auxVar)
 	*pilhaVar = nova;
 }
 
-//função que vai retirar uma variavel da nossa pilha de variavel
+//funcao que vai retirar uma variavel da nossa pilha de variavel
 void popPV(Variavel **pv, Variavel **pvAux)
 {
 	if(!isEmptyPV(*pv))
@@ -246,7 +272,7 @@ void popPV(Variavel **pv, Variavel **pvAux)
 		*pvAux = (Variavel*)malloc(sizeof(Variavel));
 		Variavel *aux; //vai ser usado para deletar a caixinha
 		
-		//fazendo o auxiliar que vem por parametro receber as informações
+		//fazendo o auxiliar que vem por parametro receber as informacoes
 		strcpy((*pvAux)->valor, (*pv)->valor);
 		strcpy((*pvAux)->identificador, (*pv)->identificador);
 		(*pvAux)->ponteiro = (*pv)->ponteiro;
@@ -258,7 +284,7 @@ void popPV(Variavel **pv, Variavel **pvAux)
 	}
 }
 
-//função que vai tirar uma variavel da pilha pelo identificador (indepentemente se é topo ou não)
+//funcao que vai tirar uma variavel da pilha pelo identificador (indepentemente se e topo ou nao)
 void popIdentificadorPV(Variavel **pv, char *identificador)
 {
 	Variavel *atual = *pv, *ant = NULL;
@@ -267,13 +293,13 @@ void popIdentificadorPV(Variavel **pv, char *identificador)
 	{
 		if(strcmp(atual->identificador, identificador) == 0)
 		{
-			if(ant == NULL) //1º caso
+			if(ant == NULL) //1ï¿½ caso
 				*pv = atual->prox;
 			else
 				ant->prox = atual->prox;
 			
 			free(atual);
-			atual = NULL; //para encerrar a repetição
+			atual = NULL; //para encerrar a repeticao
 		}
 		else
 		{
@@ -283,13 +309,13 @@ void popIdentificadorPV(Variavel **pv, char *identificador)
 	}
 }
 
-//função que vai retornar o topo da nossa pilha de variavel
+//funcao que vai retornar o topo da nossa pilha de variavel
 void topPV(Variavel *pv, Variavel **pvAux)
 {
 	*pvAux = pv;
 }
 
-//função que busca uma variavel na pilha de variavel pelo identificador
+//funcao que busca uma variavel na pilha de variavel pelo identificador
 Variavel *buscarIdentPV(Variavel *pv, char *identificador)
 {
 	while(pv != NULL && strcmp(pv->identificador, identificador) != 0)
@@ -297,10 +323,10 @@ Variavel *buscarIdentPV(Variavel *pv, char *identificador)
 		
 	if(pv != NULL)
 		return pv;
-	return NULL; //não achou
+	return NULL; //nao achou
 }
 
-//função que busca um token dentro da lista
+//funcao que busca um token dentro da lista
 Programa *buscarToken(Programa *programa, char *tokenBusca)
 {
 	Token *token;
@@ -311,17 +337,15 @@ Programa *buscarToken(Programa *programa, char *tokenBusca)
 		while(token != NULL)
 		{
 			if(strcmp(token->info, tokenBusca) == 0)
-				return programa; // lista do programa auq tem o token dentro
+				return programa; // lista do programa que tem o token dentro
 			token = token->prox;
 		}
 		programa = programa->prox;
 	}
-	return NULL; //não achou o token
+	return NULL; //nao achou o token
 }
 
-
-
-//função que cria a caixa do nosso token
+//funcao que cria a caixa do nosso token
 Token *CaixaToken(char *info) 
 {
     Token *caixa = (Token*)malloc(sizeof(Token));
@@ -330,7 +354,7 @@ Token *CaixaToken(char *info)
     return caixa;
 }
 
-//função que cria a caixa da nossa lista que vai apontar para lista de tokens
+//funcao que cria a caixa da nossa lista que vai apontar para lista de tokens
 Programa *CaixaPrograma() 
 {
     Programa *caixa = (Programa*)malloc(sizeof(Programa));
@@ -340,7 +364,7 @@ Programa *CaixaPrograma()
     return caixa;
 }
 
-//função que vai adicionar um novo token na lista de tokens
+//funcao que vai adicionar um novo token na lista de tokens
 void AdicionarToken(Programa *l, char *info) 
 {
     Token *caixa = CaixaToken(info);
@@ -356,7 +380,7 @@ void AdicionarToken(Programa *l, char *info)
    // printf("Token adicionado: '%s'\n", info);  // Teste para ver se separou os token certos
 }
 
-//função que insere uma caixa de programa na lista para que cada caixa aponte para uma linha de tokens
+//funcao que insere uma caixa de programa na lista para que cada caixa aponte para uma linha de tokens
 void AdicionarPrograma(Programa **p, Programa *l)
 {
     if(*p == NULL)
@@ -372,7 +396,7 @@ void AdicionarPrograma(Programa **p, Programa *l)
     }
 }
 
-//função que verifica a existencia de um operador ou simbolo (utilizado na hora de tokenrizar)
+//funcao que verifica a existencia de um operador ou simbolo (utilizado na hora de tokenrizar)
 int operador_simbolo(char caracter)
 {
 	if(caracter == '(' || caracter == ')' || caracter == '+' || caracter == '-' ||
@@ -384,7 +408,7 @@ int operador_simbolo(char caracter)
 	return 0;
 }
 
-//função que verifica a existencia de operadores composto (utilizado na hora de tokenrizar)
+//funcao que verifica a existencia de operadores composto (utilizado na hora de tokenrizar)
 int operadoresComposto(char caracter, char caracter2)
 {
 	if((caracter == '=' && caracter2 == '=') ||
@@ -401,7 +425,7 @@ int operadoresComposto(char caracter, char caracter2)
 	return 0;
 }
 
-//função que verifica a existencia de um identificador (utilizado na hora de tokenzirar)
+//funcao que verifica a existencia de um identificador (utilizado na hora de tokenzirar)
 int identificador(char caracter)
 {
 	if(caracter != ' ' && caracter != '\t' && caracter != '\n' &&
@@ -415,13 +439,13 @@ int identificador(char caracter)
 	return 0;
 }
 
-//CAIO - POSICIONAR JUNTO COM FUNÇÕES PARECIDAS
+//CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
 int isTipoVariavel(char *info) 
 {
 	return !strcmp(info, "LET") || !strcmp(info, "CONST");
 }
 
-//CAIO - ESSA FUNCÇÃO SERIA A EXECUÇÃO DO PROGRAMA EM SI, FEITA APENAS A DECLARAÇÃO DE VARIAVEL
+//CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv)
 {
 	Variavel auxVar;
@@ -432,25 +456,25 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	Programa *auxPrograma;
 	auxPrograma = programa;
 	
-	char auxTipo[7]; //Salvar o tipo de variável quando declarada
+	char auxTipo[7]; //Salvar o tipo de variavel quando declarada
 	
 	while(auxPrograma != NULL)
 	{
 		while(auxToken != NULL)
 		{
-			if(isTipoVariavel(auxToken->info)) //verifica se o token é definição de variável LET ou CONST
+			if(isTipoVariavel(auxToken->info)) //verifica se o token e definicao de variavel LET ou CONST
 			{
-					strcpy(auxTipo, auxToken->info); // Salvar o tipo da váriavel para tratar da forma adequada
+					strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para tratar da forma adequada
 					auxToken = auxToken->prox;
-					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estará na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' após declaração de variavel
+					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre seria: <<tipo>> nome =
+					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE seria '=' apos declaracao de variavel
 					if(strcmp(auxTipo,"LET")==0)
 					{
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
 						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
 					}
-					else //Então é CONST
+					else //Entao e CONST
 					{
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
@@ -465,7 +489,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	
 }
 
-//função que lê um arquivo que foi passado e armazena os tokens linha a linha
+//funcao que le um arquivo que foi passado e armazena os tokens linha a linha
 void lerArquivo(char *nomeArquivo, Programa **programa)
 {
     FILE *ptr;
@@ -486,13 +510,13 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 	
 	        while(linha[i] != '\0') 
 			{
-	            //pula espaços, tabs e quebras de linha
+	            //pula espacos, tabs e quebras de linha
 	            while(linha[i] == ' ' || linha[i] == '\t' || linha[i] == '\n')
 	                i++;
 	
 	            j = 0;
 	
-	            //verifica se é um operador ou símbolo isolado
+	            //verifica se e um operador ou simbolo isolado
 	            if(operador_simbolo(linha[i]) == 1) 
 	            {
 	                //verifica operadores compostos (==, !=, <=, >=, +=, -=, *=, /=, **, ++, --, &&, ||)
@@ -513,7 +537,7 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 	            }
 				else
 				{
-	                //le identificadores, números, etc.
+	                //le identificadores, numeros, etc.
 	                while(identificador(linha[i]) == 1) 
 	                    token[j++] = linha[i++];
 	                if(j > 0)
@@ -548,8 +572,8 @@ void ExibirPrograma(Programa *programa) {
     }
 }
 
-//TENHO QUE TERMINAR ESSA FUNÇÕES PARA EXIBIR LINHA A LINHA DO PROGRAMA
-//função que exibe o codigo linha a linha conforme for dando enter
+//TENHO QUE TERMINAR ESSA FUNï¿½ï¿½ES PARA EXIBIR LINHA A LINHA DO PROGRAMA
+//funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
 //void exibirExecucao(Programa *programa)
 //{
 //	Token *linha;
@@ -567,7 +591,7 @@ void ExibirPrograma(Programa *programa) {
 //	}
 //}
 
-////função que exibe o codigo linha a linha conforme for dando enter
+////funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
 //void mostrarLinha(Programa *programa)
 //{
 //	Token *token = programa->token;
@@ -582,7 +606,7 @@ void ExibirPrograma(Programa *programa) {
 //	Mostrar_Excucao(atual->prox);
 //}
 
-//função que exibe as variaveis e informações dentro da memoria ram
+//funcao que exibe as variaveis e informacoes dentro da memoria ram
 void ram(Variavel *pv)
 {
 	//se caso for colocar moldura depois
@@ -601,7 +625,7 @@ void ram(Variavel *pv)
 	}
 }
 
-//função que contem o menu do nosso simulador de execução
+//funcao que contem o menu do nosso simulador de execucao
 char menu()
 {
 	printf("\n\n[F7] - Abrir \t"); //F7 = 65
@@ -613,7 +637,7 @@ char menu()
 }
 
 // ------------------//-----------------------//--------------------//------------//---------
-//FUNÇÕES QUE AINDA FALTA CRIAR
+//FUNCOES QUE AINDA FALTA CRIAR
 // ------------------//-----------------------//--------------------//------------//---------
 
 //void limpaTela(int lin1, int lin2, int col1, int col2)
@@ -628,46 +652,45 @@ char menu()
 
 
 
-//função que simula a execução do nosso programa (FALTA FINALIZAR)
-/*
+//funcao que simula a execucao do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
 {
-	//(FALTA CRIAR) vai ser usado para o controle de toda a estrutura do programa que está sendo compilado
-	Controle *se, *rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
+	//vai ser usado para o controle de toda a estrutura do programa que esta sendo compilado
+	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
 	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
 	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
-	Variavel *pAux;
+	Variavel *pvAux = *pv;
 	Token *linha, *nova, *linha2;
-	Funcoes *funcoes, *funAux; //FALTA CRIAR -- feito e comentado
+	Funcoes *funcoes, *funAux;
 	
-	initC(&se); //FALTA CRIAR -- feito escopo e comentado
-	initC(&rep); //FALTA CRIAR -- feito escopo e comentado
+	initC(&se); 
+	initC(&Rep);
 	
-	char op, seVar='0', rep='0', nomeArquivo[50];
+	char seVar='0', rep='0', op, nomeArquivo[50];
 	
 	//vai ser utilizado para o controle do for presente no programa .js
 	Variavel *var;
 	char *variavel;
 	char valorStr[30]; //receber a string que foi passada
-	int start, stop, step; //valores que vão dentro do for
-	controleFor *pFor = NULL; //FALTA CRIAR -- feito e comentado
+	int start, stop, step; //valores que vao dentro do for
+	controleFor *pFor = NULL;
 	
-	listaEncadeada *listaPrint; //FALTA CRIAR -- feito e comentado
-	initLE(&listaPrint); //FALTA CRIAR -- feito escopo e comentado
+	listaEncadeada *listaPrint, *auxLE; 
+	initLE(&listaPrint); 
 	
-	limpaTela(1, 1, 90, 90); //FALTA CRIAR -- feito escopo e comentado
-	gotoxy(1, 1);
+	//limpaTela(1, 1, 90, 90); //FALTA CRIAR -- feito escopo e comentado
+	//gotoxy(1, 1);
 	
-	//chamando o menu de opcões do programa
+	//chamando o menu de opcoes do programa
 	op = menu();
 	
 	auxP = atual;
-	initF(&funcao); //FALTA CRIAR -- feito escopo e comentado
+	initF(&funcoes);
 	
-	//repetição que vai simular a execução do programa
+	//repeticao que vai simular a execucao do programa
 	while(op != 27)
 	{
 		switch(op)
@@ -680,6 +703,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
+				auxP = *programa;
 				while(auxP != NULL)
 				{
 					linha = auxP->token; //recebe a primeira linha
@@ -687,7 +711,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 					if(strcmp(linha->info, "function") == 0) //verificando se achou uma funcao
 					{
 						//vamos inserir a function
-						enqueue(&funcoes,linha->info,l,auxP);
+						enqueueF(&funcoes,linha->info,l,auxP);
 						l++;
 						
 						auxP = auxP->prox;
@@ -719,205 +743,225 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				        if(auxP != NULL)
 				        	atual = auxP->prox;
 					}
-					else //andar se caso não achou um function
+					else //andar se caso nao achou um function
             			auxP = auxP->prox;
 				}
-				auxP = atual;
-				numUse = auxP;
+				//auxP = atual;
+				numUse = atual;
 				
 				break;
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
-				limpaTela(1, 1, 90, 90);
-				gotoxy(1,1);
+				//nao sei se estaria correto como estou passando
+				executaPrograma(atual, &pvAux);
 				
-				if(!isEmptyF(funcoes)) //FALTA CRIAR -- feito escopo e comentado
-					exibirFunction(funcoes); //FALTA CRIAR -- feito escopo e comentado
-				if(numUse == atual)
+				printf("\nTESTE DA RAM DAMDAM\n");
+				while(pvAux != NULL);
 				{
-					mostrarLinha(numUse,l); //FALTA CRIAR -- feito escopo e comentado
-					lin = l;
-					col = 1;
+					printf("\n\nIndentificador: %s",pvAux->identificador);
+					printf("\nValor: %s",pvAux->valor);
+					printf("\nPonteiro: %p",pvAux->ponteiro);
+					pvAux = pvAux->prox;
 				}
-				else
-					mostrarLinha(numUse,l);
-					
-				gotoxy(col,lin); //move o cursor para proxima linha
-				op = getch(); //ou talvez tenha que ser op = menu();
-				gotoxy(col,lin);
-				
-				//continua a execução enquanto clicar enter = 13
-				while(op == 13 && atual != NULL)
-				{
-					linha = atual->token;
-					chave = 0; //nosso cotador que vai indicar dentro de quantos bloco estamos
-					
-					if(strcmp(linha->info, "{") == 0) //inicio de um bloco de execução
-					{
-					    // apenas avança uma linha, não precisa de contador
-					    atual = atual->prox;
-					    chave++;
-					}
-//					vamos validar se estava em uma repetição se sim vamos retornar para o inicio dela
-//					e tambem validar se estava em um if para fazer chaveAtual receber chave
-//					para continuar a execução
-					
-					flag = 0;
-					if(chave != chaveAtual)
-					{
-						if(chave > chaveAtual)
-						{
-							//codigo para avançar nas repetições ou condições
-							//se as chave aumentou significa que estamos entrando um novo bloco while ou if
-							//se valida =1 vamos pular
-							
-							auxP = atual;
-							l = lin;
-							
-							while(auxP != NULL && chave > chaveAtual)
-							{
-							    linha = auxP->token;
-							    chave = 0;
-							
-							    if(strcmp(linha->info,"{") == 0) //se eu achei uma chave eu dou ++
-							        chave++;
-							
-							    if(chave > chaveAtual) 
-								{
-							        l++;
-							        auxP = auxP->prox;
-							    }
-							}
-							
-							//atualizando a linha atual e o contador de linhas
-							if(auxP != NULL)
-							{
-								linha = auxP->token;
-								atual = auxP;
-								lin = l
-							}
-							else
-							{
-								flag = 1;
-								atual = auxP
-							}
-						}
-						if(chave < chaveAtual)
-						{
-							if(!isEmpty(rep))
-							{
-								topC(rep,&repAux);
-								auxP = repAux->local;
-								if(repAux->chave >= chave)
-								{
-									atual = repAux->local;
-									linha = atual->token;
-									chave = 0;
-									if(strcmp(linha->info,"}") == 0)
-									{
-										chave++;
-										atual = atual->prox;
-									}
-										
-									linha = atual;
-									chaveAtual = repAux->chave;
-									lin = repAux->l;
-									col = repAux->c;
-									repAux = popC(&rep);
-								}
-							}
-							if(!isEmptyC(se))
-							{
-								chaveAtual = chave;
-								ifAux = pop(&se);
-								seVar = 1;
-							}
-						}
-					}
-				}
+				printf("\n\n TERMINOU A RAM DAMDAM");
+				getch();
+//				limpaTela(1, 1, 90, 90);
+//				gotoxy(1,1);
+//				
+//				if(!isEmptyF(funcoes)) //FALTA CRIAR -- feito escopo e comentado
+//					exibirFunction(funcoes); //FALTA CRIAR -- feito escopo e comentado
+//				if(numUse == atual)
+//				{
+//					mostrarLinha(numUse,l); //FALTA CRIAR -- feito escopo e comentado
+//					lin = l;
+//					col = 1;
+//				}
+//				else
+//					mostrarLinha(numUse,l);
+//					
+//				gotoxy(col,lin); //move o cursor para proxima linha
+//				op = getch(); //ou talvez tenha que ser op = menu();
+//				gotoxy(col,lin);
+//				
+//				//continua a execuï¿½ï¿½o enquanto clicar enter = 13
+//				while(op == 13 && atual != NULL)
+//				{
+//					linha = atual->token;
+//					chave = 0; //nosso cotador que vai indicar dentro de quantos bloco estamos
+//					
+//					if(strcmp(linha->info, "{") == 0) //inicio de um bloco de execuï¿½ï¿½o
+//					{
+//					    // apenas avanï¿½a uma linha, nï¿½o precisa de contador
+//					    atual = atual->prox;
+//					    chave++;
+//					}
+////					vamos validar se estava em uma repetiï¿½ï¿½o se sim vamos retornar para o inicio dela
+////					e tambem validar se estava em um if para fazer chaveAtual receber chave
+////					para continuar a execuï¿½ï¿½o
+//					
+//					flag = 0;
+//					if(chave != chaveAtual)
+//					{
+//						if(chave > chaveAtual)
+//						{
+//							//codigo para avanï¿½ar nas repetiï¿½ï¿½es ou condiï¿½ï¿½es
+//							//se as chave aumentou significa que estamos entrando um novo bloco while ou if
+//							//se valida =1 vamos pular
+//							
+//							auxP = atual;
+//							l = lin;
+//							
+//							while(auxP != NULL && chave > chaveAtual)
+//							{
+//							    linha = auxP->token;
+//							    chave = 0;
+//							
+//							    if(strcmp(linha->info,"{") == 0) //se eu achei uma chave eu dou ++
+//							        chave++;
+//							
+//							    if(chave > chaveAtual) 
+//								{
+//							        l++;
+//							        auxP = auxP->prox;
+//							    }
+//							}
+//							
+//							//atualizando a linha atual e o contador de linhas
+//							if(auxP != NULL)
+//							{
+//								linha = auxP->token;
+//								atual = auxP;
+//								lin = l
+//							}
+//							else
+//							{
+//								flag = 1;
+//								atual = auxP
+//							}
+//						}
+//						if(chave < chaveAtual)
+//						{
+//							if(!isEmpty(rep))
+//							{
+//								topC(rep,&repAux);
+//								auxP = repAux->local;
+//								if(repAux->chave >= chave)
+//								{
+//									atual = repAux->local;
+//									linha = atual->token;
+//									chave = 0;
+//									if(strcmp(linha->info,"}") == 0)
+//									{
+//										chave++;
+//										atual = atual->prox;
+//									}
+//										
+//									linha = atual;
+//									chaveAtual = repAux->chave;
+//									lin = repAux->l;
+//									col = repAux->c;
+//									repAux = popC(&rep);
+//								}
+//							}
+//							if(!isEmptyC(se))
+//							{
+//								chaveAtual = chave;
+//								ifAux = pop(&se);
+//								seVar = 1;
+//							}
+//						}
+//					}
+//				}
 				
 				break;
 				
 			case 67: // F9 - memoria ram
-				//temos que criar ainda a pilha que vai simular a memoria ram em execução
-				ram(*pv); //FALTA CRIAR -- feito escopo e comentado
-				//ja temos pv criado porque é a pilha de variavel, mas ainda falta mais coisa
+			//exibe o estado da pilha de variavel simulando a memoria ram
+				ram(*pv);
 				op = getch();
 				
 				break;
 				
 			case 68: //F10 - exibir os prints
-				listaEncadeada *auxLE = listaPrint;
-				limpaTela(1, 1, 90, 90);
-				gotoxy(1,1);
-				printf("\n *** Prints ***\n");
-				while(auxLE != NULL)
-				{
-					printf("\n%s",auxLE->info);
-					auxLE = auxLE->prox;
-				}
+				auxLE = listaPrint;
+				//limpaTela(1, 1, 90, 90);
+				//gotoxy(1,1);
+//				printf("\n *** Prints ***\n");
+//				while(auxLE != NULL)
+//				{
+//					printf("\n%s",auxLE->info);
+//					auxLE = auxLE->prox;
+//				}
+
+				ExibirPrograma(*programa);
 				op = getch();
 				
 				break;
 			
 			case 27:
 				printf("\nPrograma encerrado!");
+				
+				break;
 		}
 		
-		//chamando o menu de opcões do programa
+		//chamando o menu de opcoes do programa
 		op = menu();
 	}
 }
-*/
+
 int main()
 {
 	//lista que vai apontar para a lista de tokens
-    Programa *l = NULL; //vou passa l como null, porque vai ler o arquivo dentro da simulação
+    Programa *l = NULL; //vou passa l como null, porque vai ler o arquivo dentro da simulacao
     
-    //lista do tipo pilha que vai guardar todas as informações das nossas variaveis
+    //lista do tipo pilha que vai guardar todas as informacoes das nossas variaveis
     Variavel *pilhaVar = NULL;
     
     char op, nomeArquivo[50];
 	int result;
-	
-	do
-	{
-		op = menu();
-		switch(op)
-		{
-			case 65: //F7
-				printf("\nNome do arquivo: ");
-				fflush(stdin);
-				gets(nomeArquivo);
-				
-				lerArquivo(nomeArquivo, &l);
-				
-				//daqui para baixo chama a função de abrir o arquivo
-				//e com esse arquivo vamos tokenrizar para simular a execução
-				
-				break;
-			
-			case 66: //F8
-				//aqui eu vou chamar a execução do programa linha a linha
-				//simulaExecucao(l, &pilhaVar);
-				executaPrograma(l,&pilhaVar);
-				break;
-				
-			case 67: //F9
-				//aqui eu vou mostrar a nossa memoria ram que vai ser nossa pilha de variavel
-				printf("\n*** MEMORIA RAM ***\n");
-				ram(pilhaVar);
-				
-				break;
-			
-			case 68: //F10
-				//mostrar a tela exibindo os console.log
-				ExibirPrograma(l);
-				
-				
-				break;
-		}
-	}while(op != 27); //ESC = 27
+
+//	chamando a funcao que vai executar todo nosso programa
+	simulaExecucao(&l, &pilhaVar);
+
+// PROVAVELMENTE NAO VAMOS MAIS USAR AQUI NO MAIN, VAMOS FAZER DIRETO NA SIMULACAO	
+//	do
+//	{
+//		op = menu();
+//		switch(op)
+//		{
+//			case 65: //F7
+//				printf("\nNome do arquivo: ");
+//				fflush(stdin);
+//				gets(nomeArquivo);
+//				
+//				lerArquivo(nomeArquivo, &l);
+//				
+//				//daqui para baixo chama a funï¿½ï¿½o de abrir o arquivo
+//				//e com esse arquivo vamos tokenrizar para simular a execuï¿½ï¿½o
+//				
+//				break;
+//			
+//			case 66: //F8
+//				//aqui eu vou chamar a execuï¿½ï¿½o do programa linha a linha
+//				//simulaExecucao(l, &pilhaVar);
+//				executaPrograma(l,&pilhaVar);
+//				break;
+//				
+//			case 67: //F9
+//				//aqui eu vou mostrar a nossa memoria ram que vai ser nossa pilha de variavel
+//				printf("\n*** MEMORIA RAM ***\n");
+//				ram(pilhaVar);
+//				
+//				break;
+//			
+//			case 68: //F10
+//				//mostrar a tela exibindo os console.log
+//				ExibirPrograma(l);
+//				
+//				
+//				break;
+//		}
+//	}while(op != 27); //ESC = 27
     
     return 0;
 }
