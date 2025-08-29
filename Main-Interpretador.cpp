@@ -579,6 +579,24 @@ void ExibirPrograma(Programa *programa) {
 //	Mostrar_Excucao(atual->prox);
 //}
 
+//função que exibe as variaveis e informações dentro da memoria ram
+void ram(Variavel *pv)
+{
+	//se caso for colocar moldura depois
+	limpaTela(1, 1, 90, 90);
+	gotoxy(1,1);
+	
+	printf("\n ----------- MEMORIA RAM ----------");
+	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
+	//printf("\n|Identificador \t|\t Valor \t|\t Ponteiro|");
+	while(pv != NULL)
+	{
+		printf("\n| %-*s | %-*s | %*p |",20,pv->identificador, 15,pv->valor, 20,pv->ponteiro);
+		//printf("|%s \t|\t %s\t|\t %p \t|",pv->identificador,pv->valor, pv->ponteiro);
+		pv = pv->prox;
+	}
+}
+
 //função que contem o menu do nosso simulador de execução
 char menu()
 {
@@ -596,7 +614,7 @@ char menu()
 
 //void limpaTela(int lin1, int lin2, int col1, int col2)
 
-//void ram(Variavel *pv)
+
 
 //void exibirFunction(Funcoes *f)
 
