@@ -7,18 +7,43 @@ typedef struct TpVariavel Variavel;
 
 struct TpPilha
 {
-	Variavel *variavel;
+	Variavel variavel;
 	struct TpPilha *prox;
 };
 typedef struct TpPilha Pilha;
 
+int isTipoVariavel(char *info)
+{
+	return !strcmp(info, "LET") || !strcmp(info, "CONST");
+}
+
+//função que inicializa a pilha da variavel
+void initPV(Variavel **pilhaVar)
+{
+	*pilhaVar = NULL;
+}
+
+//função que insere a variavel dentro da nossa pilha de variavel
+void pushPV(Pilha **pilhaVar, Variavel auxVar)
+{
+	Pilha *nova = (Pilha*)malloc(sizeof(Pilha));
+	strcpy(nova->variavel.valor, auxVar.valor);
+	strcpy(nova->variavel.identificador, auxVar.identificador);
+	nova->variavel.ponteiro = auxVar.ponteiro;
+	
+	nova->prox = *pilhaVar;
+	*pilhaVar = nova;
+}
+
 void executaPrograma(Programa *programa)
 {
-	Variavel *pv, auxVar;
+	Variavel auxVar;
+	Pilha *pv;
+	initPV(&pv);
 	TpToken *auxToken;
 	auxToken = programa->token;
-	Programa *auxProgram;
-	auxProgram = programa;
+	Programa *auxPrograma;
+	auxPrograma = programa;
 	
 	char auxTipo[7]; //Salvar o tipo de variável quando declarada
 	
@@ -32,19 +57,19 @@ void executaPrograma(Programa *programa)
 					auxToken = auxToken->prox;
 					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estará na proxima caixa. Ou seja sempre será: <<tipo>> nome =
 					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' após declaração de variavel
-					if(strcmp(auxTipo,'LET')==0)
+					if(strcmp(auxTipo,"LET")==0)
 					{
-						strcpy(auxVar.valor, auxToken.info);
+						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
 						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
 					}
 					else //Então é CONST
 					{
-						auxVar.valor = NULL;
+						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
-						auxVar.ponteiro = auxToken->info;
+						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
 					}
-					push(&pv,auxVar, tipoVar) //Passar a pilha, a variavel, e o tipo dela pq vamos tratar de diferentes formas se for LET ou COSNT
+					pushPV(&pv,auxVar); //Passar a pilha, e a variavel
 			}
 		}
 	} 

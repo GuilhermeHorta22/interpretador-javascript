@@ -50,7 +50,7 @@ struct TpFuncoes
 	int l;
 	Programa *local;
 	char function[TF];
-	struct TpFuncoes
+	struct TpFuncoes *prox;
 };
 typedef struct TpFuncoes Funcoes;
 
@@ -72,53 +72,6 @@ struct TpListaEncadeada
 typedef struct TpListaEncadeada listaEncadeada;
 
 
-//CAIO - POSICIONAR JUNTO COM FUNÇÕES PARECIDAS
-int isTipoVariavel(char *info) 
-{
-	return !strcmp(info, "LET") || !strcmp(info, "CONST");
-}
-
-//CAIO - ESSA FUNCÇÃO SERIA A EXECUÇÃO DO PROGRAMA EM SI, FEITA APENAS A DECLARAÇÃO DE VARIAVEL
-void executaPrograma(Programa *programa)
-{
-	Variavel auxVar;
-	Pilha *pv;
-	initPV(&pv);
-	TpToken *auxToken;
-	auxToken = programa->token;
-	Programa *auxPrograma;
-	auxPrograma = programa;
-	
-	char auxTipo[7]; //Salvar o tipo de variável quando declarada
-	
-	while(auxPrograma != NULL)
-	{
-		while(auxToken != NULL)
-		{
-			if(isTipoVariavel(auxToken->info)) //verifica se o token é definição de variável LET ou CONST
-			{
-					strcpy(auxTipo, auxToken->info); // Salvar o tipo da váriavel para tratar da forma adequada
-					auxToken = auxToken->prox;
-					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estará na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' após declaração de variavel
-					if(strcmp(auxTipo,"LET")==0)
-					{
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
-					}
-					else //Então é CONST
-					{
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-					}
-					pushPV(&pv,auxVar); //Passar a pilha, e a variavel
-			}
-		}
-	} 
-	
-}
 
 // -- TAD PILHA CONTROLE --
 
@@ -131,7 +84,7 @@ void initC(Controle **c)
 //função que verifica se nossa pilha de controle está vazia
 char isEmptyC(Controle *c)
 {
-	return c == NULL
+	return c == NULL;
 }
 
 //função que insere informações na nossa pilha de controle
@@ -149,7 +102,7 @@ void pushC(Controle **c, int chave, Programa *p, int lin, int col)
 //função que vai retirar as informações da nossa pilha de controle
 Controle popC(Controle **c)
 {
-	Cotrole *aux, cAtual;
+	Controle *aux, cAtual;
 	if(!isEmptyC(*c))
 	{
 		cAtual.chave = (*c)->chave;
@@ -206,7 +159,7 @@ void enqueueLE(listaEncadeada **le, char *info)
 	listaEncadeada *aux = *le, *nova = criaCaixaLE(info);
 	
 	if(aux == NULL)
-		*lista = nova;
+		*le = nova;
 	else
 	{
 		while(aux->prox != NULL)
@@ -218,10 +171,10 @@ void enqueueLE(listaEncadeada **le, char *info)
 
 //função que retira uma informação da fila de LE
 void dequeueLE(listaEncadeada **le, char *info)
-{}
+{
 	listaEncadeada *aux;
 	
-	if(*le == NULL)
+	if((*le) == NULL)
 		strcpy(info, "");
 	else
 	{
@@ -279,7 +232,7 @@ void pushPV(Variavel **pilhaVar, Variavel auxVar)
 	Variavel *nova = (Variavel*)malloc(sizeof(Variavel));
 	strcpy(nova->valor, auxVar.valor);
 	strcpy(nova->identificador, auxVar.identificador);
-	nova->ponteiro = programa;
+	nova->ponteiro = auxVar.ponteiro;
 	
 	nova->prox = *pilhaVar;
 	*pilhaVar = nova;
@@ -460,6 +413,54 @@ int identificador(char caracter)
 	    caracter != '|' && caracter != '.' && caracter != '\0')
 	    return 1;
 	return 0;
+}
+
+//CAIO - POSICIONAR JUNTO COM FUNÇÕES PARECIDAS
+int isTipoVariavel(char *info) 
+{
+	return !strcmp(info, "LET") || !strcmp(info, "CONST");
+}
+
+//CAIO - ESSA FUNCÇÃO SERIA A EXECUÇÃO DO PROGRAMA EM SI, FEITA APENAS A DECLARAÇÃO DE VARIAVEL
+void executaPrograma(Programa *programa)
+{
+	Variavel auxVar;
+	Variavel *pv;
+	initPV(&pv);
+	TpToken *auxToken;
+	auxToken = programa->token;
+	Programa *auxPrograma;
+	auxPrograma = programa;
+	
+	char auxTipo[7]; //Salvar o tipo de variável quando declarada
+	
+	while(auxPrograma != NULL)
+	{
+		while(auxToken != NULL)
+		{
+			if(isTipoVariavel(auxToken->info)) //verifica se o token é definição de variável LET ou CONST
+			{
+					strcpy(auxTipo, auxToken->info); // Salvar o tipo da váriavel para tratar da forma adequada
+					auxToken = auxToken->prox;
+					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estará na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' após declaração de variavel
+					if(strcmp(auxTipo,"LET")==0)
+					{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
+					}
+					else //Então é CONST
+					{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+					}
+					pushPV(&pv,auxVar); //Passar a pilha, e a variavel
+			}
+		}
+	} 
+	
 }
 
 //função que lê um arquivo que foi passado e armazena os tokens linha a linha
