@@ -256,12 +256,19 @@ char isEmptyPV(Variavel *pilhaVar)
 void pushPV(Variavel **pilhaVar, Variavel auxVar)
 {
 	Variavel *nova = (Variavel*)malloc(sizeof(Variavel));
+	
 	strcpy(nova->valor, auxVar.valor);
 	strcpy(nova->identificador, auxVar.identificador);
 	nova->ponteiro = auxVar.ponteiro;
-	
+		
 	nova->prox = *pilhaVar;
 	*pilhaVar = nova;
+	
+	//DEBUG
+	printf("\nPUSH realizado");
+	printf("\n\nIdentificador: %s",(*pilhaVar)->identificador);
+	printf("\nValor: %s",(*pilhaVar)->valor);
+	printf("\nPonteiro: %p",(*pilhaVar)->ponteiro);
 }
 
 //funcao que vai retirar uma variavel da nossa pilha de variavel
@@ -442,7 +449,7 @@ int identificador(char caracter)
 //CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
 int isTipoVariavel(char *info) 
 {
-	return !strcmp(info, "LET") || !strcmp(info, "CONST");
+	return strcmp(info, "let") || strcmp(info, "const");
 }
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
@@ -452,7 +459,6 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	//Variavel *pv;
 	//initPV(&pv);
 	TpToken *auxToken;
-	auxToken = programa->token;
 	Programa *auxPrograma;
 	auxPrograma = programa;
 	
@@ -460,6 +466,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	
 	while(auxPrograma != NULL)
 	{
+		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
 			if(isTipoVariavel(auxToken->info)) //verifica se o token e definicao de variavel LET ou CONST
@@ -470,9 +477,14 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE seria '=' apos declaracao de variavel
 					if(strcmp(auxTipo,"LET")==0)
 					{
+						//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
+						//if(isFuncao)
+						//if(isArray)
+						//if(isConta)
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
-						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS	
+						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS
+						
 					}
 					else //Entao e CONST
 					{
@@ -614,7 +626,7 @@ void ram(Variavel *pv)
 	system("cls");
 	//gotoxy(1,1);
 	
-	printf("\n ----------- MEMORIA RAM ----------");
+	printf("\n\t ----------- MEMORIA RAM ----------");
 	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
 	//printf("\n|Identificador \t|\t Valor \t|\t Ponteiro|");
 	while(pv != NULL)
@@ -688,6 +700,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	op = menu();
 	
 	auxP = atual;
+	//inicia Fila de funções
 	initF(&funcoes);
 	
 	//repeticao que vai simular a execucao do programa
@@ -702,7 +715,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				gets(nomeArquivo);
 				
 				lerArquivo(nomeArquivo, &*programa);
-				
+				/*
 				auxP = *programa;
 				while(auxP != NULL)
 				{
@@ -748,23 +761,13 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				}
 				//auxP = atual;
 				numUse = atual;
-				
+				*/
 				break;
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				//nao sei se estaria correto como estou passando
-				executaPrograma(atual, &pvAux);
-				
-				printf("\nTESTE DA RAM DAMDAM\n");
-				while(pvAux != NULL);
-				{
-					printf("\n\nIndentificador: %s",pvAux->identificador);
-					printf("\nValor: %s",pvAux->valor);
-					printf("\nPonteiro: %p",pvAux->ponteiro);
-					pvAux = pvAux->prox;
-				}
-				printf("\n\n TERMINOU A RAM DAMDAM");
-				getch();
+				executaPrograma(*programa, &pvAux);
+				op = getch();
 //				limpaTela(1, 1, 90, 90);
 //				gotoxy(1,1);
 //				
@@ -877,7 +880,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 			case 67: // F9 - memoria ram
 			//exibe o estado da pilha de variavel simulando a memoria ram
-				ram(*pv);
+				ram(pvAux);
 				op = getch();
 				
 				break;
@@ -917,8 +920,8 @@ int main()
     //lista do tipo pilha que vai guardar todas as informacoes das nossas variaveis
     Variavel *pilhaVar = NULL;
     
-    char op, nomeArquivo[50];
-	int result;
+    //char op, nomeArquivo[50];
+	//int result;
 
 //	chamando a funcao que vai executar todo nosso programa
 	simulaExecucao(&l, &pilhaVar);
