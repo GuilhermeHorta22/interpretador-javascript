@@ -32,6 +32,7 @@ struct TpVariavel
 	char identificador[TF], valor[TF];
 	Programa *ponteiro;
 	struct TpVariavel *prox;
+	int tipo; // 0 = LET 1 = CONST
 };
 typedef struct TpVariavel Variavel;
 
@@ -260,15 +261,17 @@ void pushPV(Variavel **pilhaVar, Variavel auxVar)
 	strcpy(nova->valor, auxVar.valor);
 	strcpy(nova->identificador, auxVar.identificador);
 	nova->ponteiro = auxVar.ponteiro;
+	nova->tipo = auxVar.tipo;
 		
 	nova->prox = *pilhaVar;
 	*pilhaVar = nova;
 	
 	//DEBUG
-	printf("\nPUSH realizado");
-	printf("\n\nIdentificador: %s",(*pilhaVar)->identificador);
+	printf("\n\nPUSH realizado");
+	printf("\nIdentificador: %s",(*pilhaVar)->identificador);
 	printf("\nValor: %s",(*pilhaVar)->valor);
 	printf("\nPonteiro: %p",(*pilhaVar)->ponteiro);
+	printf("\nTipo: %d", (*pilhaVar)->tipo);
 }
 
 //funcao que vai retirar uma variavel da nossa pilha de variavel
@@ -475,25 +478,20 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					auxToken = auxToken->prox;
 					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre seria: <<tipo>> nome =
 					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE seria '=' apos declaracao de variavel
-					if(strcmp(auxTipo,"LET")==0)
-					{
-						//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
+					strcpy(auxVar.valor, auxToken->info);
+					auxToken = auxToken->prox;
+					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+					//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
 						//if(isFuncao)
 						//if(isArray)
 						//if(isConta)
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-						auxVar.ponteiro = NULL; //ARRUMAR ISSO DPS
-						
-					}
+					if(strcmp(auxTipo,"let")==0)
+						auxVar.tipo = 0;
 					else //Entao e CONST
-					{
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-						auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-					}
+						auxVar.tipo = 1;
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
+			//if(isVariavel(auxToken->info))
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
