@@ -472,7 +472,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
-			if(isTipoVariavel(auxToken->info)) //verifica se o token e definicao de variavel LET ou CONST
+			if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
 					strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para tratar da forma adequada
 					auxToken = auxToken->prox;
@@ -481,14 +481,15 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					strcpy(auxVar.valor, auxToken->info);
 					auxToken = auxToken->prox;
 					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-					//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
-						//if(isFuncao)
-						//if(isArray)
-						//if(isConta)
+					
 					if(strcmp(auxTipo,"let")==0)
 						auxVar.tipo = 0;
 					else //Entao e CONST
 						auxVar.tipo = 1;
+					//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
+					//if(isFuncao) -> Busca na lista de funções 
+					//if(isConta) -> ?
+					//preciso verificar se depois do '=' é: funcao OU conta OU valor
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
 			//if(isVariavel(auxToken->info))
@@ -506,7 +507,7 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
     char linha[256];
     Programa *novaLinha;
     char token[256];
-    int i, j;
+    int i, j, contConchete=0;
 
     ptr = fopen(nomeArquivo, "r");
     if(ptr == NULL) 
@@ -545,6 +546,22 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 	
 	                AdicionarToken(novaLinha, token);
 	            }
+	            //Verifica se é um Array
+	            else if(linha[i] == '[')
+				{
+					contConchete++;
+					token[j++] = linha[i++];
+					while(contConchete != 0)
+					{
+						if(linha[i] == '[')
+							contConchete++;
+						if(linha[i] == ']')
+							contConchete--;
+						token[j++] = linha[i++];
+					}
+					token[j] = '\0';
+					AdicionarToken(novaLinha, token);
+				}
 				else
 				{
 	                //le identificadores, numeros, etc.
@@ -624,7 +641,7 @@ void ram(Variavel *pv)
 	system("cls");
 	//gotoxy(1,1);
 	
-	printf("\n\t ----------- MEMORIA RAM ----------");
+	printf("\n\t\t----------- MEMORIA RAM ----------\n");
 	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
 	//printf("\n|Identificador \t|\t Valor \t|\t Ponteiro|");
 	while(pv != NULL)
@@ -917,52 +934,9 @@ int main()
     
     //lista do tipo pilha que vai guardar todas as informacoes das nossas variaveis
     Variavel *pilhaVar = NULL;
-    
-    //char op, nomeArquivo[50];
-	//int result;
 
-//	chamando a funcao que vai executar todo nosso programa
+	//Chamando a funcao que vai executar todo nosso programa
 	simulaExecucao(&l, &pilhaVar);
-
-// PROVAVELMENTE NAO VAMOS MAIS USAR AQUI NO MAIN, VAMOS FAZER DIRETO NA SIMULACAO	
-//	do
-//	{
-//		op = menu();
-//		switch(op)
-//		{
-//			case 65: //F7
-//				printf("\nNome do arquivo: ");
-//				fflush(stdin);
-//				gets(nomeArquivo);
-//				
-//				lerArquivo(nomeArquivo, &l);
-//				
-//				//daqui para baixo chama a funï¿½ï¿½o de abrir o arquivo
-//				//e com esse arquivo vamos tokenrizar para simular a execuï¿½ï¿½o
-//				
-//				break;
-//			
-//			case 66: //F8
-//				//aqui eu vou chamar a execuï¿½ï¿½o do programa linha a linha
-//				//simulaExecucao(l, &pilhaVar);
-//				executaPrograma(l,&pilhaVar);
-//				break;
-//				
-//			case 67: //F9
-//				//aqui eu vou mostrar a nossa memoria ram que vai ser nossa pilha de variavel
-//				printf("\n*** MEMORIA RAM ***\n");
-//				ram(pilhaVar);
-//				
-//				break;
-//			
-//			case 68: //F10
-//				//mostrar a tela exibindo os console.log
-//				ExibirPrograma(l);
-//				
-//				
-//				break;
-//		}
-//	}while(op != 27); //ESC = 27
     
     return 0;
 }
