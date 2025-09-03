@@ -412,8 +412,7 @@ int operador_simbolo(char caracter)
 	if(caracter == '(' || caracter == ')' || caracter == '+' || caracter == '-' ||
 	    caracter == '*' || caracter == '/' || caracter == '=' || caracter == ',' ||
 	    caracter == '{' || caracter == '}' || caracter == ';' || caracter == '<' ||
-	    caracter == '>' || caracter == '!' || caracter == '&' || caracter == '|' || 
-	    caracter == '.')
+	    caracter == '>' || caracter == '!' || caracter == '&' || caracter == '|')
 	    return 1;
 	return 0;
 }
@@ -444,7 +443,7 @@ int identificador(char caracter)
 	    caracter != '=' && caracter != ',' && caracter != '{' &&
 	    caracter != '}' && caracter != ';' && caracter != '<' &&
 	    caracter != '>' && caracter != '!' && caracter != '&' &&
-	    caracter != '|' && caracter != '.' && caracter != '\0')
+	    caracter != '|' && caracter != '\0' && caracter != '.')
 	    return 1;
 	return 0;
 }
@@ -455,15 +454,168 @@ int isTipoVariavel(char *info)
 	return strcmp(info, "let") || strcmp(info, "const");
 }
 
+//funcao que pula os espacos que tiver
+void pulaEspacos(Token **linha)
+{
+	while(*linha != NULl && (strcmp((*linha)->info," ") == 0 || strcmp((*linha)->info,"\t") == 0))
+		*linha = (*linha)->prox;
+}
+
+
+
+//funcao que separa as expressoes dentro de um console.log
+Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
+{
+	Programa *atual = ant;
+	
+	Token *linha = atual->token, *atr, *novoT, c=NULL, *auxT, *token;
+	Programa *novaP, *cabeca=NULL, auxP;
+	
+	char div[2];
+	
+	if(strcmp(linha->info,"console") == 0 && strcmp(linha->prox->info,".log") == 0)
+		linha = linha->prox->prox; //pulando token 1 = console | token 2 = .log
+		
+	if(strcmp(linha->info,")") == 0)
+		linha = linha->prox; //pulando o (
+	
+	//funcao para pular eventuais espacos em brancos
+	pulaEspacos(&linha);
+	
+	//pulando ' ou "
+	if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
+	{
+		linha = linha->prox;
+		pularEspacos(&linha);
+		
+		while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
+			linha = linha->prox;
+		linha = linha->prox;
+	}
+	pularEspacos(&linha);
+	
+	while(linha != NULL && strcmp(linha->info,",")!= 0)
+		linha = linha->prox;
+		
+	if(strcmp(linha->info,",") == 0)
+		strcpy(div,linha->info);
+		
+	atr = linha;
+	
+	pularEspacos(&linha);
+	linha = linha->prox;
+	
+	while(linha != NULL && strcmp(linha->prox,")") != 0)
+	{
+		pularEspacos(&linha);
+		if(strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0)
+		{
+			if(strcmp(linha->token,",") == 0)
+			{
+				pularEspacos(&linha);
+				
+				novaP = CaixaPrograma();
+				novaP->token = c;
+				cabeca = novaP;
+				c = NULL;
+				
+				token = resol(cabeca,pv,funcoes); //criar essa função resol - FALTA FAZER
+				if(token != NULL)
+				{
+					atr->prox = token;
+					token->prox = linha;
+				}
+				
+				pularEspacos(&linha);
+				
+				strcpy(div,linha->info);
+				atr = linha;
+			}
+			else
+			{
+				novoT = CaixaToken(linha->info);
+				
+				if(c == NULL)
+					c = novoT;
+				else
+				{
+					auxT = c;
+					while(auxT->prox != NULL)
+						auxT = auxT->prox;
+						
+					auxT->prox = novoT;
+				}
+			}
+		}
+		else
+		{
+			if(c != NULL)
+			{
+				if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
+				{
+					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
+						linha = linha->prox;
+						
+					pularEspacos(&linha);
+					linha = linha->prox;
+					pularEspacos(&linha);
+					linha = linha->prox;
+					pularEspacos(&linha);
+				}
+				pularEspacos(&linha);
+				
+				strcpy(div,linha->info);
+				atr = linha;
+			
+				getch();
+			}
+			else
+			{
+				if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
+				{
+					linha = linha->prox;
+					pularEspacos(&linha);
+					
+					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
+						linha = linha->prox;
+					linha = linha->prox;
+				}
+				atr = linha;
+			}
+		}
+		linha = linha->prox;
+	}
+	if(linha != NULL && strcmp(strcmp(linha->info,")") == 0))
+	{
+		novaP = CaixaPrograma();
+		nova->token = c;
+		
+		cabeca = novaP;
+		token = resol(cabeca,pv,funcoes);
+		if(token != NULL)
+		{
+			atr->prox = token;
+			token->prox = linha;
+		}
+	}
+	return atual;
+}
+
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv)
 {
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
-	TpToken *auxToken, *auxProcura;
-	Programa *auxPrograma;
+	Token *auxToken, *auxProcura;
+	Programa *auxPrograma, *pontConLog; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
+	
+	Funcoes *funcoes;
+	
+	//lista encadeada que vai guardar as informações dos console.log
+	listaEncadeada *listaConLog;
+	initLE(&listaConLog);
 	
 	char auxTipo[7]; //Salvar o tipo de variavel quando declarada
 	
@@ -508,6 +660,16 @@ void executaPrograma(Programa *programa, Variavel **pv)
 
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
+			else
+			if(strcmp(auxToken->info,"console") == 0) 
+			{
+				auxToken = auxToken->prox;
+				if(strcmp(auxToken->info,".log") == 0)//achou um console.log
+				{
+					pontConLog = separaExpressoes(pontConLog, *pv, funcoes);
+					
+				}
+			}
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
@@ -543,6 +705,19 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 	            j = 0;
 	
 	            //verifica se e um operador ou simbolo isolado
+	            if(linha[i] == '.' && !(linha[i+1] >= '0' && linha[i+1] <= '9'))
+				{
+				    j = 0;
+				    token[j++] = linha[i++]; // guarda o ponto
+				
+				    // guarda até encontrar '(' ou algum delimitador
+				    while(linha[i] != '(' && identificador(linha[i]) == 1)
+				        token[j++] = linha[i++];
+				
+				    token[j] = '\0';
+				    AdicionarToken(novaLinha, token);
+				}
+				else
 	            if(operador_simbolo(linha[i]) == 1) 
 	            {
 	                //verifica operadores compostos (==, !=, <=, >=, +=, -=, *=, /=, **, ++, --, &&, ||)
@@ -561,8 +736,8 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 	
 	                AdicionarToken(novaLinha, token);
 	            }
-	            //Verifica se é um Array
-	            else if(linha[i] == '[')
+	            else 
+				if(linha[i] == '[')//Verifica se é um Array
 				{
 					contConchete++;
 					token[j++] = linha[i++];
@@ -597,20 +772,22 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 
 void ExibirPrograma(Programa *programa) {
     Programa *linhaAtual = programa;
-    int numLinha = 1;
+    Token *tokenAtual = linhaAtual->token;
+    int numLinha = 1, contToken=1;
 
     while(linhaAtual != NULL)
 	{
-        printf("\nLinha %d: ", numLinha);
-        Token *tokenAtual = linhaAtual->token;
         while(tokenAtual != NULL)
 		{
-            printf("%s ", tokenAtual->info);
+            printf("Token: %d - info: %s \t ",contToken, tokenAtual->info);
             tokenAtual = tokenAtual->prox;
+            contToken++;
         }
         //printf("\n");
         linhaAtual = linhaAtual->prox;
+        tokenAtual = linhaAtual->token;
         numLinha++;
+        contToken--;
     }
 }
 
@@ -745,6 +922,9 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				gets(nomeArquivo);
 				
 				lerArquivo(nomeArquivo, &*programa);
+				
+				ExibirPrograma(*programa);
+				getch();
 				/*
 				auxP = *programa;
 				while(auxP != NULL)
