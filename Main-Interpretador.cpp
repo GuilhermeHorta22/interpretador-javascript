@@ -461,7 +461,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
-	TpToken *auxToken;
+	TpToken *auxToken, *auxProcura;
 	Programa *auxPrograma;
 	auxPrograma = programa;
 	
@@ -474,25 +474,40 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		{
 			if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
-					strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para tratar da forma adequada
+					strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
 					auxToken = auxToken->prox;
-					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre seria: <<tipo>> nome =
-					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE seria '=' apos declaracao de variavel
-					strcpy(auxVar.valor, auxToken->info);
-					auxToken = auxToken->prox;
+					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
+					auxProcura = auxToken;
+					/*
+					//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
+					if(procuraOperador(auxProcura))
+					{
+						constroiListaGen(listaCalcula, );//preciso construir a listagen a partir do token
+						auxVar.valor = resolveExpressao(auxToken); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+					}
+					//
+					else if(procuraFuncao(auxProcura))
+					{
+						
+					}
+					*/
+					//caso não seja função ou conta;
+					//else
+				//	{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+				//	}
+					
 					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
 					
 					if(strcmp(auxTipo,"let")==0)
 						auxVar.tipo = 0;
 					else //Entao e CONST
 						auxVar.tipo = 1;
-					//tratar caso seja alguma conta aritmetica, chamada de função, arrays!!!!!!
-					//if(isFuncao) -> Busca na lista de funções 
-					//if(isConta) -> ?
-					//preciso verificar se depois do '=' é: funcao OU conta OU valor
+
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
-			//if(isVariavel(auxToken->info))
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
