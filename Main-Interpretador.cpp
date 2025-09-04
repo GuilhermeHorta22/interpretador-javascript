@@ -487,6 +487,37 @@ void pulaEspacos(Token **linha)
 		*linha = (*linha)->prox;
 }
 
+//funcao que verifica qual o tipo da expressão presente no meu console.log
+Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
+{
+	char tipoExp, bol;
+	Token *novo, *novo2, *linha;
+	linha = programa->token;
+	Variavel *pvAux;
+	initPV(&pvAux);
+	
+	//tipoExp = tipoExpressao(linha);
+	if(tipoExp == 'M')
+	{
+		novo = CaixaToken("R\0");
+		novo2 = CaixaToken("=\0");
+		novo2->prox = linha;
+		
+		novo->prox = novo2;
+		programa->token = novo;
+		
+		//atribuicao(programa,&pv,funcao);
+		
+		popPV(&pv,&pvAux);
+		strcpy(novo->info,pvAux->valor);
+	}
+	else
+	{
+		novo = linha;
+	}
+	return novo;
+}
+
 //funcao que separa as expressoes dentro de um console.log
 Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 {
@@ -529,7 +560,7 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 	pulaEspacos(&linha);
 	linha = linha->prox;
 	
-	while(linha != NULL && strcmp(linha->prox->info,")") != 0)
+	while(linha != NULL && linha->prox != NULL && strcmp(linha->prox->info,")") != 0)
 	{
 		pulaEspacos(&linha);
 		if(strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0)
@@ -543,7 +574,7 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 				cabeca = novaP;
 				c = NULL;
 				
-				//token = resol(cabeca,pv,funcoes); //criar essa função resol - FALTA FAZER
+				token = resolConLog(cabeca,*pv,funcoes); //criar essa funcao - FALTA FAZER
 				if(token != NULL)
 				{
 					atr->prox = token;
@@ -612,10 +643,10 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 	if(linha != NULL && strcmp(linha->info,")") == 0)
 	{
 		novaP = CaixaPrograma();
-		nova->token = c;
+		novaP->token = c;
 		
 		cabeca = novaP;
-		//token = resol(cabeca,pv,funcoes);
+		token = resolConLog(cabeca,*pv,funcoes);
 		if(token != NULL)
 		{
 			atr->prox = token;
@@ -655,40 +686,42 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		{
 			if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
-					strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
-					auxToken = auxToken->prox;
-					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
-					auxProcura = auxToken;
+				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
+				auxToken = auxToken->prox;
+				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
+				auxProcura = auxToken;
 					
-					//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
-					if(procuraOperador(auxProcura))
-					{
+				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
+				if(procuraOperador(auxProcura))
+				{
 						
-						//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-						//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
-					}
+					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+				}
 					//
-				//	else if(procuraFuncao(auxProcura))
-					{
+				//else if(procuraFuncao(auxProcura))
+				{
 						
-				//	}
+					//}
 					//caso não seja função ou conta;
-				//	else
-				//	{
+					//else
+					//{
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
-				//	}
+					//}
 					
 					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-					
+						
 					if(strcmp(auxTipo,"let")==0)
 						auxVar.tipo = 0;
 					else //Entao e CONST
 						auxVar.tipo = 1;
-
+	
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+				}
 			}
+			else
 			if(strcmp(auxToken->info,"console") == 0) 
 			{
 				auxToken = auxToken->prox;
@@ -702,7 +735,6 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		}
 		auxPrograma = auxPrograma->prox;
 	} 
-}
 }
 
 //funcao que le um arquivo que foi passado e armazena os tokens linha a linha

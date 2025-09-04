@@ -1,10 +1,3 @@
-console.log(10);
-fruta.push(uva);
-
-fuction soma()
-{
-
-}
-console.log("bom dia") //simples
-console.log(soma) //condicional
-console.log("a = ",num1,"b = ",) //
+var numero1 = 10;
+console.log("Numero 1: ",numero1);
+console.log("Numero 2: "+numero1);
