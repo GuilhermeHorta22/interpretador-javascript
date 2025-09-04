@@ -407,16 +407,18 @@ void AdicionarPrograma(Programa **p, Programa *l)
 }
 
 //funcao que verifica se caracter é um operador matemático (utilizado na hora verificação de expressão matemática)
-int operador(char *caracter)
+int operadorMatematico(char *caracter)
 {
-	printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
-	if(strcmp(caracter,"+")==0 || strcmp(caracter,"-")==0 || strcmp(caracter,"*")==0 || strcmp(caracter,"/")==0)
+	//printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
+	if(strcmp(caracter,"+")==0 || strcmp(caracter,"-")==0 || 
+	strcmp(caracter,"*")==0 || strcmp(caracter,"/")==0 ||
+	strcmp(caracter,"%") == 0 || strcmp(caracter,"**") == 0)
 	{
-		printf("\n\nEH OPERADOR!!!");
+		//printf("\n\nEH OPERADOR!!!");
 		return 1;
 	}
 		
-	printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
+	//printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
 	return 0;
 }
 
@@ -466,7 +468,7 @@ int identificador(char caracter)
 int procuraOperador(Token* procura)
 {
 	printf("\n\n\tEntrou na funcao");
-	while(procura != NULL && !operador(procura->info))
+	while(procura != NULL && !operadorMatematico(procura->info))
 		procura = procura->prox;
 	printf("\n\n\tSaiu do While");
 	if(procura != NULL)
@@ -539,23 +541,23 @@ char tipoExpressao(Token *atual)
 			//apenas marca fim do argumento, nada a fazer aqui
 		} 
         else 
-		if(ehOperadorMatematico(atual->info)) 
+		if(operadorMatematico(atual->info))
             encontrouOperadorMatematico = 1;
 
         atual = atual->prox;
     }
 
     if(concatenacaoString == 1) 
-        return 'S'; // String ou concatenação
+        return 'S'; //string ou concatenação
     if(encontrouOperadorMatematico == 1)
-        return 'M'; // Matemática
-    return 'S'; // Simples (string, número, variável, etc.)
+        return 'M'; //matematica
+    return 'S'; //simples (string, numero, variavel, etc.)
 }
 
 //funcao que resolve qual o tipo da expressão presente no meu console.log
 Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 {
-	char tipoExp, bol;
+	char tipoExp, bol, caracter[10];
 	Token *novo, *novo2, *linha;
 	linha = programa->token;
 	Variavel *pvAux;
@@ -564,8 +566,11 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 	tipoExp = tipoExpressao(linha);
 	if(tipoExp == 'M')
 	{
-		novo = CaixaToken("R\0");
-		novo2 = CaixaToken("=\0");
+		strcpy(caracter,"R");
+		novo = CaixaToken(caracter);
+		
+		strcpy(caracter,"=");
+		novo2 = CaixaToken(caracter);
 		novo2->prox = linha;
 		
 		novo->prox = novo2;
@@ -721,13 +726,101 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 	return atual;
 }
 
+//funcao que trata o console.log
+void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
+{
+    strcpy(mensagemPronta, "");
+
+    Token *atual = programa->token;
+    Variavel *pvAux = NULL;
+    char nomeVar[100];
+    char valor[200]; // buffer temporário para cada token
+
+    int flag = 1; // flag para controlar o loop sem usar break
+
+    // Pula tabs ou espaços iniciais
+    while(atual != NULL && strcmp(atual->info, "\t") == 0)
+        atual = atual->prox;
+
+    // Verifica se é console.log
+    if(atual != NULL && strcmp(atual->info, "console") == 0 && atual->prox != NULL &&
+       strcmp(atual->prox->info, ".log") == 0)
+    {
+        atual = atual->prox->prox; // pular console e .log
+
+        // Pular '('
+        while(atual != NULL && strcmp(atual->info, "(") == 0)
+            atual = atual->prox;
+
+        // Loop principal de flag
+        while(flag && atual != NULL)
+        {
+            // Pular espaços
+            while(atual != NULL && strcmp(atual->info, " ") == 0)
+                atual = atual->prox;
+
+            // Checa se chegou no final dos argumentos
+            if(atual != NULL && strcmp(atual->info, ")") == 0)
+                flag = 0; // flag para terminar o loop
+
+            if(atual != NULL && flag)
+            {
+                // String literal
+                if(strcmp(atual->info, "\"") == 0 || strcmp(atual->info, "'") == 0)
+                {
+                    char aspas = atual->info[0];
+                    atual = atual->prox; // pular aspas inicial
+                    valor[0] = '\0';
+
+                    while(atual != NULL && strcmp(atual->info, "\"") != 0 && strcmp(atual->info, "'") != 0)
+                    {
+                        strcat(valor, atual->info);
+                        atual = atual->prox;
+                    }
+                    strcat(mensagemPronta, valor);
+
+                    if(atual != NULL) 
+						atual = atual->prox; // pular aspas final
+                }
+                // Número ou literal direto
+                else
+				if(isdigit(atual->info[0]) || atual->info[0] == '-' || atual->info[0] == '.')
+                {
+                    strcat(mensagemPronta, atual->info);
+                    atual = atual->prox;
+                }
+                // Variável ou expressão
+                else
+                {
+                    strcpy(nomeVar, atual->info);
+                    pvAux = buscarIdentPV(pv, nomeVar);
+                    if(pvAux != NULL)
+                        strcat(mensagemPronta, pvAux->valor);
+                    else
+                        strcat(mensagemPronta, nomeVar);
+
+                    atual = atual->prox;
+                }
+
+                // Se houver vírgula ou '+', adicionar espaço
+                while(atual != NULL && (strcmp(atual->info, ",") == 0 || strcmp(atual->info, "+") == 0))
+                {
+                    strcat(mensagemPronta, " ");
+                    atual = atual->prox;
+                }
+            }
+        }
+    }
+}
+
+
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv)
 {
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
-	Token *auxToken, *auxProcura;
+	Token *auxToken, *auxProcura, *linhaAux;
 	Programa *auxPrograma, *pontConLog; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
 	
@@ -742,59 +835,68 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	//initLG(&listaCalcula);
 	
 	//Salvar o tipo de variavel quando declarada
-	char auxTipo[7]; 
+	char auxTipo[7], mensagemPronta[200]; 
 	
 	while(auxPrograma != NULL)
 	{
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
-			if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
+			//if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
+//			{
+//				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
+//				auxToken = auxToken->prox;
+//				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+//				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
+//				auxProcura = auxToken;
+//					
+//				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
+//				if(procuraOperador(auxProcura))
+//				{
+//						
+//					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+//					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+//				}
+//					//
+//				//else if(procuraFuncao(auxProcura))
+//				{
+//						
+//					//}
+//					//caso não seja função ou conta;
+//					//else
+//					//{
+//						strcpy(auxVar.valor, auxToken->info);
+//						auxToken = auxToken->prox;
+//					//}
+//					
+//					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+//						
+//					if(strcmp(auxTipo,"let")==0)
+//						auxVar.tipo = 0;
+//					else //Entao e CONST
+//						auxVar.tipo = 1;
+//	
+//					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+//				}
+//			}
+//			else
+			if(linhaAux != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
-				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
-				auxToken = auxToken->prox;
-				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
-				auxProcura = auxToken;
+				pontConLog = separaExpressoes(pontConLog, &*pv, funcoes);
+				
+				linhaAux = pontConLog->token;
+				while(linhaAux != NULL && strcmp(linhaAux->info,"\t") == 0 )
+					linhaAux = linhaAux->prox;
 					
-				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
-				if(procuraOperador(auxProcura))
+				if(linhaAux != NULL && linhaAux->prox && strcmp(linhaAux->info,"console") == 0 && strcmp(linhaAux->info,".log") == 0)
 				{
-						
-					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+					tratarConLog(pontConLog, *pv, mensagemPronta);
+					enqueueLE(&listaConLog, mensagemPronta);
 				}
-					//
-				//else if(procuraFuncao(auxProcura))
-				{
-						
-					//}
-					//caso não seja função ou conta;
-					//else
-					//{
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-					//}
-					
-					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-						
-					if(strcmp(auxTipo,"let")==0)
-						auxVar.tipo = 0;
-					else //Entao e CONST
-						auxVar.tipo = 1;
-	
-					pushPV(pv,auxVar); //Passar a pilha, e a variavel
-				}
-			}
-			else
-			if(strcmp(auxToken->info,"console") == 0) 
-			{
-				auxToken = auxToken->prox;
-				if(strcmp(auxToken->info,".log") == 0)//achou um console.log
-				{
-					//pontConLog = separaExpressoes(pontConLog, *pv, funcoes);
-					
-				}
+				pontConLog = NULL;	
+				//APENAS PARA TESTAR!!!
+				printf("\n\nMensagem console.log: %s",mensagemPronta);
+				getch();
 			}
 			auxToken = auxToken->prox;
 		}
@@ -895,7 +997,9 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
     }
 }
 
-void ExibirPrograma(Programa *programa) {
+//funcao que exibe o programa
+void ExibirPrograma(Programa *programa) 
+{
     Programa *linhaAtual = programa;
     Token *tokenAtual = linhaAtual->token;
     int numLinha = 1, contToken=1;
@@ -915,40 +1019,6 @@ void ExibirPrograma(Programa *programa) {
         contToken--;
     }
 }
-
-//TENHO QUE TERMINAR ESSA FUNï¿½ï¿½ES PARA EXIBIR LINHA A LINHA DO PROGRAMA
-//funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
-//void exibirExecucao(Programa *programa)
-//{
-//	Token *linha;
-//	
-//	while(pProg != NULL)
-//	{
-//		linha = programa->token;
-//		while(linha != NULL)
-//		{
-//			printf("%s",linha->token);
-//			linha=linha->prox;
-//		}
-//		printf("\n");
-//		pProg = pProg->prox;
-//	}
-//}
-
-////funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
-//void mostrarLinha(Programa *programa)
-//{
-//	Token *token = programa->token;
-//	
-//	while(token != NULL)
-//	{
-//		printf("%s",token->token);
-//		token = token->prox;
-//	}
-//	
-//	printf("\n");
-//	Mostrar_Excucao(atual->prox);
-//}
 
 //funcao que exibe as variaveis e informacoes dentro da memoria ram
 void ram(Variavel *pv)
@@ -986,7 +1056,39 @@ char menu()
 
 //void limpaTela(int lin1, int lin2, int col1, int col2)
 
+//TENHO QUE TERMINAR ESSA FUNï¿½ï¿½ES PARA EXIBIR LINHA A LINHA DO PROGRAMA
+//funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
+//void exibirExecucao(Programa *programa)
+//{
+//	Token *linha;
+//	
+//	while(pProg != NULL)
+//	{
+//		linha = programa->token;
+//		while(linha != NULL)
+//		{
+//			printf("%s",linha->token);
+//			linha=linha->prox;
+//		}
+//		printf("\n");
+//		pProg = pProg->prox;
+//	}
+//}
 
+////funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
+//void mostrarLinha(Programa *programa)
+//{
+//	Token *token = programa->token;
+//	
+//	while(token != NULL)
+//	{
+//		printf("%s",token->token);
+//		token = token->prox;
+//	}
+//	
+//	printf("\n");
+//	Mostrar_Excucao(atual->prox);
+//}
 
 //void exibirFunction(Funcoes *f)
 
