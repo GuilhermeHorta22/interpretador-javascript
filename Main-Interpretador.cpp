@@ -461,8 +461,6 @@ void pulaEspacos(Token **linha)
 		*linha = (*linha)->prox;
 }
 
-
-
 //funcao que separa as expressoes dentro de um console.log
 Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 {
@@ -476,7 +474,7 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 	if(strcmp(linha->info,"console") == 0 && strcmp(linha->prox->info,".log") == 0)
 		linha = linha->prox->prox; //pulando token 1 = console | token 2 = .log
 		
-	if(strcmp(linha->info,")") == 0)
+	if(strcmp(linha->info,"(") == 0)
 		linha = linha->prox; //pulando o (
 	
 	//funcao para pular eventuais espacos em brancos
