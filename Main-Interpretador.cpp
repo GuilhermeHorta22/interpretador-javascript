@@ -406,6 +406,20 @@ void AdicionarPrograma(Programa **p, Programa *l)
     }
 }
 
+//funcao que verifica se caracter é um operador matemático (utilizado na hora verificação de expressão matemática)
+int operador(char *caracter)
+{
+	printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
+	if(strcmp(caracter,"+")==0 || strcmp(caracter,"-")==0 || strcmp(caracter,"*")==0 || strcmp(caracter,"/")==0)
+	{
+		printf("\n\nEH OPERADOR!!!");
+		return 1;
+	}
+		
+	printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
+	return 0;
+}
+
 //funcao que verifica a existencia de um operador ou simbolo (utilizado na hora de tokenrizar)
 int operador_simbolo(char caracter)
 {
@@ -448,6 +462,18 @@ int identificador(char caracter)
 	return 0;
 }
 
+//funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
+int procuraOperador(Token* procura)
+{
+	printf("\n\n\tEntrou na funcao");
+	while(procura != NULL && !operador(procura->info))
+		procura = procura->prox;
+	printf("\n\n\tSaiu do While");
+	if(procura != NULL)
+		return 1;
+	return 0;
+}
+
 //CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
 int isTipoVariavel(char *info) 
 {
@@ -457,7 +483,7 @@ int isTipoVariavel(char *info)
 //funcao que pula os espacos que tiver
 void pulaEspacos(Token **linha)
 {
-	while(*linha != NULl && (strcmp((*linha)->info," ") == 0 || strcmp((*linha)->info,"\t") == 0))
+	while(*linha != NULL && (strcmp((*linha)->info," ") == 0 || strcmp((*linha)->info,"\t") == 0))
 		*linha = (*linha)->prox;
 }
 
@@ -466,8 +492,8 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 {
 	Programa *atual = ant;
 	
-	Token *linha = atual->token, *atr, *novoT, c=NULL, *auxT, *token;
-	Programa *novaP, *cabeca=NULL, auxP;
+	Token *linha = atual->token, *atr, *novoT, *c=NULL, *auxT, *token;
+	Programa *novaP, *cabeca=NULL, auxP,*nova;
 	
 	char div[2];
 	
@@ -484,13 +510,13 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 	if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
 	{
 		linha = linha->prox;
-		pularEspacos(&linha);
+		pulaEspacos(&linha);
 		
 		while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
 			linha = linha->prox;
 		linha = linha->prox;
 	}
-	pularEspacos(&linha);
+	pulaEspacos(&linha);
 	
 	while(linha != NULL && strcmp(linha->info,",")!= 0)
 		linha = linha->prox;
@@ -500,31 +526,31 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 		
 	atr = linha;
 	
-	pularEspacos(&linha);
+	pulaEspacos(&linha);
 	linha = linha->prox;
 	
-	while(linha != NULL && strcmp(linha->prox,")") != 0)
+	while(linha != NULL && strcmp(linha->prox->info,")") != 0)
 	{
-		pularEspacos(&linha);
+		pulaEspacos(&linha);
 		if(strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0)
 		{
-			if(strcmp(linha->token,",") == 0)
+			if(strcmp(linha->info,",") == 0)
 			{
-				pularEspacos(&linha);
+				pulaEspacos(&linha);
 				
 				novaP = CaixaPrograma();
 				novaP->token = c;
 				cabeca = novaP;
 				c = NULL;
 				
-				token = resol(cabeca,pv,funcoes); //criar essa função resol - FALTA FAZER
+				//token = resol(cabeca,pv,funcoes); //criar essa função resol - FALTA FAZER
 				if(token != NULL)
 				{
 					atr->prox = token;
 					token->prox = linha;
 				}
 				
-				pularEspacos(&linha);
+				pulaEspacos(&linha);
 				
 				strcpy(div,linha->info);
 				atr = linha;
@@ -554,13 +580,13 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
 						linha = linha->prox;
 						
-					pularEspacos(&linha);
+					pulaEspacos(&linha);
 					linha = linha->prox;
-					pularEspacos(&linha);
+					pulaEspacos(&linha);
 					linha = linha->prox;
-					pularEspacos(&linha);
+					pulaEspacos(&linha);
 				}
-				pularEspacos(&linha);
+				pulaEspacos(&linha);
 				
 				strcpy(div,linha->info);
 				atr = linha;
@@ -572,7 +598,7 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 				if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
 				{
 					linha = linha->prox;
-					pularEspacos(&linha);
+					pulaEspacos(&linha);
 					
 					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
 						linha = linha->prox;
@@ -583,13 +609,13 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 		}
 		linha = linha->prox;
 	}
-	if(linha != NULL && strcmp(strcmp(linha->info,")") == 0))
+	if(linha != NULL && strcmp(linha->info,")") == 0)
 	{
 		novaP = CaixaPrograma();
 		nova->token = c;
 		
 		cabeca = novaP;
-		token = resol(cabeca,pv,funcoes);
+		//token = resol(cabeca,pv,funcoes);
 		if(token != NULL)
 		{
 			atr->prox = token;
@@ -615,7 +641,12 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	listaEncadeada *listaConLog;
 	initLE(&listaConLog);
 	
-	char auxTipo[7]; //Salvar o tipo de variavel quando declarada
+	//Lista Generalizada para calcular expressões matemáticas
+	//ListaGen *listaCalcula;
+	//initLG(&listaCalcula);
+	
+	//Salvar o tipo de variavel quando declarada
+	char auxTipo[7]; 
 	
 	while(auxPrograma != NULL)
 	{
@@ -629,21 +660,21 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
 					auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
 					auxProcura = auxToken;
-					/*
+					
 					//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
 					if(procuraOperador(auxProcura))
 					{
-						constroiListaGen(listaCalcula, );//preciso construir a listagen a partir do token
-						auxVar.valor = resolveExpressao(auxToken); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+						
+						//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+						//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
 					}
 					//
-					else if(procuraFuncao(auxProcura))
+				//	else if(procuraFuncao(auxProcura))
 					{
 						
-					}
-					*/
+				//	}
 					//caso não seja função ou conta;
-					//else
+				//	else
 				//	{
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
@@ -658,13 +689,12 @@ void executaPrograma(Programa *programa, Variavel **pv)
 
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 			}
-			else
 			if(strcmp(auxToken->info,"console") == 0) 
 			{
 				auxToken = auxToken->prox;
 				if(strcmp(auxToken->info,".log") == 0)//achou um console.log
 				{
-					pontConLog = separaExpressoes(pontConLog, *pv, funcoes);
+					//pontConLog = separaExpressoes(pontConLog, *pv, funcoes);
 					
 				}
 			}
@@ -672,7 +702,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		}
 		auxPrograma = auxPrograma->prox;
 	} 
-	
+}
 }
 
 //funcao que le um arquivo que foi passado e armazena os tokens linha a linha
@@ -921,8 +951,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
-				ExibirPrograma(*programa);
-				getch();
+				//ExibirPrograma(*programa);
+				op = getch();
 				/*
 				auxP = *programa;
 				while(auxP != NULL)
