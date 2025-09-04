@@ -480,6 +480,10 @@ int isTipoVariavel(char *info)
 	return strcmp(info, "let") || strcmp(info, "const");
 }
 
+
+
+// -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
+
 //funcao que pula os espacos que tiver
 void pulaEspacos(Token **linha)
 {
@@ -487,7 +491,48 @@ void pulaEspacos(Token **linha)
 		*linha = (*linha)->prox;
 }
 
-//funcao que verifica qual o tipo da expressão presente no meu console.log
+//funcao que verifica qual o tipo da expressao presente no console.log
+char tipoExpressao(Token *atual) 
+{
+    int encontrouOperadorMatematico = 0;
+    int concatenacaoString = 0;
+
+    Token *anterior = NULL;
+
+    while(atual != NULL) 
+    {
+        if(strcmp(atual->info, " ") != 0)
+            anterior = atual;
+
+        //operador '+' indica concatenação de strings ou operação matemática
+        if(strcmp(atual->info,"+") == 0 && anterior != NULL && atual->prox != NULL) 
+        {
+            Token *proximo = atual->prox;
+
+            if(ehString(anterior->info) && ehString(proximo->info)) 
+                concatenacaoString = 1;
+            else
+                encontrouOperadorMatematico = 1;
+        }
+        if(strcmp(atual->info,",") == 0)
+		{
+			//apenas marca fim do argumento, nada a fazer aqui
+		} 
+        else 
+		if(ehOperadorMatematico(atual->info)) 
+            encontrouOperadorMatematico = 1;
+
+        atual = atual->prox;
+    }
+
+    if(concatenacaoString == 1) 
+        return 'S'; // String ou concatenação
+    if(encontrouOperadorMatematico == 1)
+        return 'M'; // Matemática
+    return 'S'; // Simples (string, número, variável, etc.)
+}
+
+//funcao que resolve qual o tipo da expressão presente no meu console.log
 Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 {
 	char tipoExp, bol;
@@ -496,7 +541,7 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 	Variavel *pvAux;
 	initPV(&pvAux);
 	
-	//tipoExp = tipoExpressao(linha);
+	tipoExp = tipoExpressao(linha);
 	if(tipoExp == 'M')
 	{
 		novo = CaixaToken("R\0");
