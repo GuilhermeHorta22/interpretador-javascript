@@ -484,6 +484,26 @@ int isTipoVariavel(char *info)
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
+//funcao que verifica se e uma string
+int ehString(char *token)
+{
+	int length = strlen(token);
+	
+	//verifica se uma string vazia com aspas duplas ou simples
+	if(strcmp(token,"\"") == 0  || strcmp(token,"'") == 0)
+		return 1;
+	
+	//verifica se comeca e termina com aspas duplas
+	if(length >=2 && token[0] == '\"' && token[length-1] == '\"' == 0)
+		return 1;
+		
+	//verifica se comeca e termina com aspas simples
+	if(length >=2 && token[0] == '\'' && token[length-1] == '\'' == 0)
+		return 1;
+		
+	return 0;
+}
+
 //funcao que pula os espacos que tiver
 void pulaEspacos(Token **linha)
 {
