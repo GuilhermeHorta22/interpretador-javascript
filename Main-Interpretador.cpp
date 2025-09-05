@@ -444,21 +444,6 @@ int operadorMatematico(char *caracter)
 	return 0;
 }
 
-int operadorMat(char caracter)
-{
-	//printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
-	if(caracter == '+' || caracter == '-'|| 
-	caracter == '*' || caracter == '/' ||
-	caracter == '%')
-	{
-		//printf("\n\nEH OPERADOR!!!");
-		return 1;
-	}
-		
-	//printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
-	return 0;
-}
-
 //funcao que verifica a existencia de um operador ou simbolo (utilizado na hora de tokenrizar)
 int operador_simbolo(char caracter)
 {
@@ -524,10 +509,11 @@ int procuraOperador(Token* procura)
 
 void constroiLG(ListaGen **lista, Token *token)
 {
-	char caracter;
+	char auxO, auxF[20];
+    int auxV;
 	ListaGen *nova, *aux;
 	if((*lista)!=NULL)
-		destroiLista(*lista);
+		destroiLista(*lista); //RESETA a lista caso j‡ foi usada para uma expressao anterior
 	
 	aux = (*lista);
 	
@@ -537,12 +523,15 @@ void constroiLG(ListaGen **lista, Token *token)
 			
 			if(caracter == '(')
 			{
-				nova = novaProf(caracter);
+				nova = novaProf();
 				aux->no.lista.cauda = nova;
 				token = token->prox;
-				caracter = token->info[0];
-				if(isNumeric(caracter))
-					nova->no.lista.cabeca = novaV(caracter);
+				if(Numeric(token->info))
+                {
+                    auxV = atoi(token->info);
+                    nova->no.lista.cabeca = novaV(auxV);
+                }
+					
 				//if(isVariavel(caracter))
 				//if(isFuncao(caracter))
 				aux = nova->no.lista.cabeca;
@@ -550,7 +539,8 @@ void constroiLG(ListaGen **lista, Token *token)
 			}
 			else if(numeric(token->info))
 			{
-				nova = novaV(caracter);
+                auxV = atoi(token->info);
+				nova = novaV(auxV);
 				if(aux == NULL)
 					(*lista) = aux = nova;
 				else
@@ -559,12 +549,21 @@ void constroiLG(ListaGen **lista, Token *token)
 					aux = nova;
 				}
 			}
-			else if(operadorMat(caracter))
+			else if(operadorMatematico(token->info))
 			{
-				nova = novaO(caracter);
+                auxO = token->info[0];
+				nova = novaO(auxO);
 				aux->no.lista.cauda = nova;
 				aux = nova;
 			}
+            /*
+             else if(funcao(token->info)
+             {
+             }
+             else if(variavel(token->info)
+             {
+             }
+             */
 			else if(caracter == ')')
 				pop(&P,&aux);
 			
