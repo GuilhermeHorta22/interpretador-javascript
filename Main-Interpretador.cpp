@@ -72,7 +72,29 @@ struct TpListaEncadeada
 };
 typedef struct TpListaEncadeada listaEncadeada;
 
+//Estrutura da Lista Generalizada
 
+union info_lista
+{
+	int valor;
+	char operador;
+	//implementar função tbm!!!
+};
+
+struct TpListaGen
+{
+	char terminal;
+	union info_lista no;
+	struct TpListaGen *cabeca, *cauda;
+};
+typedef struct TpListaGen ListaGen;
+
+// -- TAD LISTA GEN ---
+
+void initLG(ListaGen **lista)
+{
+	*lista = NULL;
+}
 
 // -- TAD PILHA CONTROLE --
 
@@ -422,6 +444,21 @@ int operadorMatematico(char *caracter)
 	return 0;
 }
 
+int operadorMat(char caracter)
+{
+	//printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
+	if(caracter == '+' || caracter == '-'|| 
+	caracter == '*' || caracter == '/' ||
+	caracter == '%')
+	{
+		//printf("\n\nEH OPERADOR!!!");
+		return 1;
+	}
+		
+	//printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
+	return 0;
+}
+
 //funcao que verifica a existencia de um operador ou simbolo (utilizado na hora de tokenrizar)
 int operador_simbolo(char caracter)
 {
@@ -464,6 +501,15 @@ int identificador(char caracter)
 	return 0;
 }
 
+
+//CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
+int isTipoVariavel(char *info) 
+{
+	return strcmp(info, "let") || strcmp(info, "const");
+}
+
+// -------------- FUNCOES QUE TRATA EXPRESSÃO MATEMATICA ------------------
+
 //funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
 int procuraOperador(Token* procura)
 {
@@ -476,13 +522,55 @@ int procuraOperador(Token* procura)
 	return 0;
 }
 
-//CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
-int isTipoVariavel(char *info) 
+void constroiLG(ListaGen **lista, Token *token)
 {
-	return strcmp(info, "let") || strcmp(info, "const");
+	char caracter;
+	ListaGen *nova, *aux;
+	if((*lista)!=NULL)
+		destroiLista(*lista);
+	
+	aux = (*lista);
+	
+		while(token!=NULL)
+		{
+			caracter = token->info[0];
+			
+			if(caracter == '(')
+			{
+				nova = novaProf(caracter);
+				aux->no.lista.cauda = nova;
+				token = token->prox;
+				caracter = token->info[0];
+				if(isNumeric(caracter))
+					nova->no.lista.cabeca = novaV(caracter);
+				//if(isVariavel(caracter))
+				//if(isFuncao(caracter))
+				aux = nova->no.lista.cabeca;
+				push(&P,nova);
+			}
+			else if(numeric(token->info))
+			{
+				nova = novaV(caracter);
+				if(aux == NULL)
+					(*lista) = aux = nova;
+				else
+				{
+					aux->no.lista.cauda = nova;
+					aux = nova;
+				}
+			}
+			else if(operadorMat(caracter))
+			{
+				nova = novaO(caracter);
+				aux->no.lista.cauda = nova;
+				aux = nova;
+			}
+			else if(caracter == ')')
+				pop(&P,&aux);
+			
+			token = token->prox;
+		}
 }
-
-
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
@@ -831,8 +919,8 @@ void executaPrograma(Programa *programa, Variavel **pv)
 	initLE(&listaConLog);
 	
 	//Lista Generalizada para calcular expressões matemáticas
-	//ListaGen *listaCalcula;
-	//initLG(&listaCalcula);
+	ListaGen *listaCalcula;
+	initLG(&listaCalcula);
 	
 	//Salvar o tipo de variavel quando declarada
 	char auxTipo[7], mensagemPronta[200]; 
@@ -843,43 +931,43 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		while(auxToken != NULL)
 		{
 			//if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
-//			{
-//				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
-//				auxToken = auxToken->prox;
-//				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-//				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
-//				auxProcura = auxToken;
-//					
-//				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
-//				if(procuraOperador(auxProcura))
-//				{
-//						
-//					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-//					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
-//				}
-//					//
-//				//else if(procuraFuncao(auxProcura))
-//				{
-//						
-//					//}
-//					//caso não seja função ou conta;
-//					//else
-//					//{
-//						strcpy(auxVar.valor, auxToken->info);
-//						auxToken = auxToken->prox;
-//					//}
-//					
-//					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-//						
-//					if(strcmp(auxTipo,"let")==0)
-//						auxVar.tipo = 0;
-//					else //Entao e CONST
-//						auxVar.tipo = 1;
-//	
-//					pushPV(pv,auxVar); //Passar a pilha, e a variavel
-//				}
-//			}
-//			else
+			{
+				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
+				auxToken = auxToken->prox;
+				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
+				auxProcura = auxToken;
+					
+				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
+				if(procuraOperador(auxProcura))
+				{
+						
+					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+				}
+					//
+				//else if(procuraFuncao(auxProcura))
+				{
+						
+					//}
+					//caso não seja função ou conta;
+					//else
+					//{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+					//}
+					
+					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+						
+					if(strcmp(auxTipo,"let")==0)
+						auxVar.tipo = 0;
+					else //Entao e CONST
+						auxVar.tipo = 1;
+	
+					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+				}
+			}
+			else
 			if(linhaAux != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
 				pontConLog = separaExpressoes(pontConLog, &*pv, funcoes);
