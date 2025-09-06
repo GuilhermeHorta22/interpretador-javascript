@@ -486,6 +486,12 @@ int identificador(char caracter)
 	return 0;
 }
 
+int numeric(char *caracter)
+{
+	if(caracter[0] >= 48 && caracter[0] <= 57)
+		return 1;
+	return 0;
+}
 
 //CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
 int isTipoVariavel(char *info) 
@@ -494,6 +500,33 @@ int isTipoVariavel(char *info)
 }
 
 // -------------- FUNCOES QUE TRATA EXPRESSÃO MATEMATICA ------------------
+
+ListaGen *novaProf()
+{
+	ListaGen *nova = (ListaGen*)malloc(sizeof(ListaGen));
+	nova->terminal = 'P';
+	nova->no.valor = 0;
+	nova->cabeca = nova->cauda = NULL;
+	return nova;
+}
+
+ListaGen *novaV(int valor)
+{
+	ListaGen *nova = (ListaGen*)malloc(sizeof(ListaGen));
+	nova->terminal = 'V';
+	nova->no.valor = valor;
+	nova->cabeca = nova->cauda = NULL;
+	return nova;
+}
+
+ListaGen *novaO(char operador)
+{
+	ListaGen *nova = (ListaGen*)malloc(sizeof(ListaGen));
+	nova->terminal = 'O';
+	nova->no.operador = operador;
+	nova->cabeca = nova->cauda = NULL;
+	return nova;
+}
 
 //funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
 int procuraOperador(Token* procura)
@@ -507,45 +540,59 @@ int procuraOperador(Token* procura)
 	return 0;
 }
 
+void destroiLista(ListaGen **lista)
+{
+	 if((*lista)!=NULL)
+	 {
+	 		destroiLista(&(*lista)->cabeca);
+	 		destroiLista(&(*lista)->cauda);
+	 		free(*lista);
+	 		*lista = NULL;
+	 }
+}
+
 void constroiLG(ListaGen **lista, Token *token)
 {
 	char auxO, auxF[20];
     int auxV;
 	ListaGen *nova, *aux;
+	printf("\n\nEntrou na CONSTROI");
 	if((*lista)!=NULL)
-		destroiLista(*lista); //RESETA a lista caso j‡ foi usada para uma expressao anterior
+		destroiLista(&(*lista)); //RESETA a lista caso j‡ foi usada para uma expressao anterior
 	
 	aux = (*lista);
-	
 		while(token!=NULL)
 		{
-			caracter = token->info[0];
-			
-			if(caracter == '(')
+			printf("\n\nVALOR DO TOKEN: %c",token->info);
+			printf("\n\nEntrou no WHILE CONSTROI");
+			if(strcmp(token->info,"(")==0)
 			{
 				nova = novaProf();
-				aux->no.lista.cauda = nova;
+				aux->cauda = nova;
 				token = token->prox;
-				if(Numeric(token->info))
+				if(numeric(token->info))
                 {
                     auxV = atoi(token->info);
-                    nova->no.lista.cabeca = novaV(auxV);
+                    nova->cabeca = novaV(auxV);
                 }
 					
 				//if(isVariavel(caracter))
 				//if(isFuncao(caracter))
-				aux = nova->no.lista.cabeca;
-				push(&P,nova);
+				aux = nova->cabeca;
+				//push(&P,nova);!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			}
 			else if(numeric(token->info))
 			{
+				printf("\n\nEntrou no IF NUMERIC");
                 auxV = atoi(token->info);
+                printf("\n\n %d",aux);
 				nova = novaV(auxV);
 				if(aux == NULL)
 					(*lista) = aux = nova;
 				else
 				{
-					aux->no.lista.cauda = nova;
+					printf("\n\nEntrou no ELSE");
+					aux->cauda = nova;
 					aux = nova;
 				}
 			}
@@ -553,7 +600,7 @@ void constroiLG(ListaGen **lista, Token *token)
 			{
                 auxO = token->info[0];
 				nova = novaO(auxO);
-				aux->no.lista.cauda = nova;
+				aux->cauda = nova;
 				aux = nova;
 			}
             /*
@@ -564,8 +611,8 @@ void constroiLG(ListaGen **lista, Token *token)
              {
              }
              */
-			else if(caracter == ')')
-				pop(&P,&aux);
+			//else if(strcmp(token->info,")")==0)
+				//pop(&P,&aux);
 			
 			token = token->prox;
 		}
@@ -941,10 +988,9 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				if(procuraOperador(auxProcura))
 				{
 						
-					//constroiListaGen(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
 					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
 				}
-					//
 				//else if(procuraFuncao(auxProcura))
 				{
 						
@@ -966,7 +1012,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 				}
 			}
-			else
+		// 	else
 			if(linhaAux != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
 				pontConLog = separaExpressoes(pontConLog, &*pv, funcoes);
