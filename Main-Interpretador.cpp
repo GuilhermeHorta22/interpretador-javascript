@@ -10,6 +10,8 @@
 //#include "TAD-Pilha.h"
 //#include "TAD-PilhaLg.h" //TAD da pilha para manipular nossa lista generalizada
 
+//MENSAGEM PARA SUBIR O COMMIT
+
 //estrutura que vai armazenar nossos tokens
 struct TpToken
 {
