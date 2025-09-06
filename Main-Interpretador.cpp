@@ -428,6 +428,21 @@ void AdicionarPrograma(Programa **p, Programa *l)
     }
 }
 
+//funcao que adiciona o token na linha
+void AdicionarTokenLinha(Token **token, char *info)
+{
+	Token *caixa = CaixaToken(info);
+	if(*token == NULL)
+		*token = caixa;
+	else
+	{
+		Token *aux = *token;
+		while(aux->prox != NULL)
+			aux = aux->prox;
+		aux->prox = caixa;
+	}
+}
+
 //funcao que verifica se caracter é um operador matemático (utilizado na hora verificação de expressão matemática)
 int operadorMatematico(char *caracter)
 {
@@ -496,7 +511,11 @@ int numeric(char *caracter)
 //CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
 int isTipoVariavel(char *info) 
 {
-	return strcmp(info, "let") || strcmp(info, "const");
+	if(strcmp(info, "const") == 0) //e uma const
+		return 1;
+	if(strcmp(info, "let") == 0) //e uma let
+		return 0;
+	return -1; // nao e uma variavel
 }
 
 // -------------- FUNCOES QUE TRATA EXPRESSÃO MATEMATICA ------------------
@@ -618,6 +637,8 @@ void constroiLG(ListaGen **lista, Token *token)
 		}
 }
 
+
+
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
 //funcao que verifica se e uma string
@@ -630,11 +651,11 @@ int ehString(char *token)
 		return 1;
 	
 	//verifica se comeca e termina com aspas duplas
-	if(length >=2 && token[0] == '\"' && token[length-1] == '\"' == 0)
+	if(length >=2 && token[0] == '\"' && token[length-1] == '\"')
 		return 1;
 		
 	//verifica se comeca e termina com aspas simples
-	if(length >=2 && token[0] == '\'' && token[length-1] == '\'' == 0)
+	if(length >=2 && token[0] == '\'' && token[length-1] == '\'')
 		return 1;
 		
 	return 0;
@@ -645,6 +666,7 @@ void pulaEspacos(Token **linha)
 {
 	while(*linha != NULL && (strcmp((*linha)->info," ") == 0 || strcmp((*linha)->info,"\t") == 0))
 		*linha = (*linha)->prox;
+	printf("\n     pulou espaco (pularEspacos)");
 }
 
 //funcao que verifica qual o tipo da expressao presente no console.log
@@ -655,32 +677,44 @@ char tipoExpressao(Token *atual)
 
     Token *anterior = NULL;
 
+	printf("\n22-  antes do while principal(tipoExpressao)");
     while(atual != NULL) 
     {
         if(strcmp(atual->info, " ") != 0)
             anterior = atual;
 
+		printf("\n23-  dentro do while principal(tipoExpressao)");
         //operador '+' indica concatenação de strings ou operação matemática
         if(strcmp(atual->info,"+") == 0 && anterior != NULL && atual->prox != NULL) 
         {
+        	printf("\n24-  dentro do if se o token foi um '+'(tipoExpressao)");
+
             Token *proximo = atual->prox;
 
             if(ehString(anterior->info) && ehString(proximo->info)) 
                 concatenacaoString = 1;
             else
                 encontrouOperadorMatematico = 1;
+            printf("\n25-  apos descobrir soma ou concatenacao(tipoExpressao)");
         }
         if(strcmp(atual->info,",") == 0)
 		{
+			printf("\n24-  se caso for uma ","(tipoExpressao)");
+
 			//apenas marca fim do argumento, nada a fazer aqui
 		} 
         else 
 		if(operadorMatematico(atual->info))
-            encontrouOperadorMatematico = 1;
+		{
+			printf("\n24- se caso for um operador matematico(tipoExpressao)");
+			encontrouOperadorMatematico = 1;
+		}
+            
 
         atual = atual->prox;
     }
 
+	printf("\n26-  antes dos returno se eh M ou S(tipoExpressao)");
     if(concatenacaoString == 1) 
         return 'S'; //string ou concatenação
     if(encontrouOperadorMatematico == 1)
@@ -697,7 +731,10 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 	Variavel *pvAux;
 	initPV(&pvAux);
 	
+	printf("\n19- estou antes de chamar a funcao tipoExpressao (resol con log)");
+	
 	tipoExp = tipoExpressao(linha);
+	printf("\n20- estou apos chamar a funcao tipoExpressao (resol con log)");
 	if(tipoExp == 'M')
 	{
 		strcpy(caracter,"R");
@@ -714,9 +751,11 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 		
 		popPV(&pv,&pvAux);
 		strcpy(novo->info,pvAux->valor);
+		printf("\n21- estou dentro do if tipoExp == M (resol con log)");
 	}
 	else
 	{
+		printf("\21- estou dentro do else tipoExp == S (resol con log)");
 		novo = linha;
 	}
 	return novo;
@@ -725,139 +764,152 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 //funcao que separa as expressoes dentro de um console.log
 Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 {
-	Programa *atual = ant;
-	
-	Token *linha = atual->token, *atr, *novoT, *c=NULL, *auxT, *token;
-	Programa *novaP, *cabeca=NULL, auxP,*nova;
-	
-	char div[2];
-	
-	if(strcmp(linha->info,"console") == 0 && strcmp(linha->prox->info,".log") == 0)
-		linha = linha->prox->prox; //pulando token 1 = console | token 2 = .log
+    Programa *atual = ant;
+
+    if(atual == NULL || atual->token == NULL)
+        return atual;
+
+    Token *linha = atual->token, *atr = NULL, *novoT = NULL, *c = NULL, *auxT = NULL, *token = NULL;
+    Programa *novaP = NULL, *cabeca = NULL;
+
+    char div[10], aspa, buffer[200];
+    int length;
+
+    //pulando console.log
+    if(linha != NULL && linha->prox != NULL && strcmp(linha->info, "console") == 0 &&strcmp(linha->prox->info, ".log") == 0)
+        linha = linha->prox->prox;
+
+    //pula (
+    if(linha != NULL && strcmp(linha->info, "(") == 0)
+        linha = linha->prox;
+
+    //pula espacos
+    if(linha != NULL)
+        pulaEspacos(&linha);
+
+	printf("\n4- Estou antes do if de pulas aspas (SEPARA EXPRESSOES)");
+    //pula ' ou "
+    if(linha != NULL && (strcmp(linha->info, "'") == 0 || strcmp(linha->info, "\"") == 0))
+    {
+        linha = linha->prox;
+        if(linha != NULL)
+            pulaEspacos(&linha);
+
+        while(linha != NULL && strcmp(linha->info, "'") != 0 && strcmp(linha->info, "\"") != 0)
+            linha = linha->prox;
+
+        if(linha != NULL)
+            linha = linha->prox;
+        printf("\n5- Estou saindo do if de pulas aspas (SEPARA EXPRESSOES)");
+    }
+
+    if(linha != NULL)
+        pulaEspacos(&linha);
+
+    // Pulando até encontrar ,
+    while(linha != NULL && strcmp(linha->info, ",") != 0)
+        linha = linha->prox;
+
+    if(linha != NULL)
+        strncpy(div, linha->info, sizeof(div) - 1), div[sizeof(div) - 1] = '\0';
+
+    atr = linha;
+
+    if(linha != NULL)
+        linha = linha->prox;
+        
+	printf("\n6- Estou antes do while principal (SEPARA EXPRESSOES)");
+    //loop principal
+    while(linha != NULL && linha->prox != NULL && strcmp(linha->prox->info, ")") != 0)
+    {
+        if(linha != NULL)
+            pulaEspacos(&linha);
 		
-	if(strcmp(linha->info,"(") == 0)
-		linha = linha->prox; //pulando o (
-	
-	//funcao para pular eventuais espacos em brancos
-	pulaEspacos(&linha);
-	
-	//pulando ' ou "
-	if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
-	{
-		linha = linha->prox;
-		pulaEspacos(&linha);
-		
-		while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
-			linha = linha->prox;
-		linha = linha->prox;
-	}
-	pulaEspacos(&linha);
-	
-	while(linha != NULL && strcmp(linha->info,",")!= 0)
-		linha = linha->prox;
-		
-	if(strcmp(linha->info,",") == 0)
-		strcpy(div,linha->info);
-		
-	atr = linha;
-	
-	pulaEspacos(&linha);
-	linha = linha->prox;
-	
-	while(linha != NULL && linha->prox != NULL && strcmp(linha->prox->info,")") != 0)
-	{
-		pulaEspacos(&linha);
-		if(strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0)
+		printf("\n7- Estou dentro do while e antes do if que compara aspas (SEPARA EXPRESSOES)");
+        if(strcmp(linha->info, "'") != 0 && strcmp(linha->info, "\"") != 0)
+        {
+            if(strcmp(linha->info, ",") == 0)
+            {
+                if(linha != NULL)
+                    pulaEspacos(&linha);
+
+                novaP = CaixaPrograma();
+                novaP->token = c;
+                cabeca = novaP;
+                c = NULL;
+				
+				printf("\n8- Estou antes da chamada da funcao resolConLog (SEPARA EXPRESSOES)");
+                token = resolConLog(cabeca, *pv, funcoes);
+                if(token != NULL && atr != NULL)
+                {
+                    atr->prox = token;
+                    token->prox = linha;
+                }
+                printf("\n9- Estou apos a chamada da funcao resolConLog (SEPARA EXPRESSOES)");
+
+                if(linha != NULL)
+                    strcpy(div, linha->info);
+
+                atr = linha;
+            }
+            else
+            {
+            	printf("\n10- Estou no else de que se for diferente de virgula (SEPARA EXPRESSOES)");
+				AdicionarTokenLinha(&c,linha->info);
+            }
+        }
+        else // strings
 		{
-			if(strcmp(linha->info,",") == 0)
-			{
-				pulaEspacos(&linha);
-				
-				novaP = CaixaPrograma();
-				novaP->token = c;
-				cabeca = novaP;
-				c = NULL;
-				
-				token = resolConLog(cabeca,*pv,funcoes); //criar essa funcao - FALTA FAZER
-				if(token != NULL)
-				{
-					atr->prox = token;
-					token->prox = linha;
-				}
-				
-				pulaEspacos(&linha);
-				
-				strcpy(div,linha->info);
-				atr = linha;
-			}
-			else
-			{
-				novoT = CaixaToken(linha->info);
-				
-				if(c == NULL)
-					c = novoT;
-				else
-				{
-					auxT = c;
-					while(auxT->prox != NULL)
-						auxT = auxT->prox;
-						
-					auxT->prox = novoT;
-				}
-			}
-		}
-		else
-		{
-			if(c != NULL)
-			{
-				if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
-				{
-					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
-						linha = linha->prox;
-						
-					pulaEspacos(&linha);
-					linha = linha->prox;
-					pulaEspacos(&linha);
-					linha = linha->prox;
-					pulaEspacos(&linha);
-				}
-				pulaEspacos(&linha);
-				
-				strcpy(div,linha->info);
-				atr = linha;
-			
-				getch();
-			}
-			else
-			{
-				if(strcmp(linha->info,"'") == 0 || strcmp(linha->info,"\"") == 0)
-				{
-					linha = linha->prox;
-					pulaEspacos(&linha);
-					
-					while(linha != NULL && (strcmp(linha->info,"'") != 0 && strcmp(linha->info,"\"") != 0))
-						linha = linha->prox;
-					linha = linha->prox;
-				}
-				atr = linha;
-			}
-		}
-		linha = linha->prox;
-	}
-	if(linha != NULL && strcmp(linha->info,")") == 0)
-	{
-		novaP = CaixaPrograma();
-		novaP->token = c;
+		    printf("\n11- Estou no else de pulas aspas (SEPARA EXPRESSOES)");
+		    buffer[0] = '\0'; //zera o buffer
 		
-		cabeca = novaP;
-		token = resolConLog(cabeca,*pv,funcoes);
-		if(token != NULL)
-		{
-			atr->prox = token;
-			token->prox = linha;
+		    //guarda o tipo de aspa
+		    aspa = linha->info[0];
+		    linha = linha->prox;
+		
+		    //junta tudo ate achar a aspa final
+		    while(linha != NULL && !(linha->info[0] == aspa && linha->info[1] == '\0'))
+		    {
+		        if(strlen(buffer) > 0)
+		            strcat(buffer, " "); //adiciona espaco entre tokens
+		        strcat(buffer, linha->info);
+		        linha = linha->prox;
+		    }
+		
+		    //pula a aspa final
+		    if(linha != NULL)
+		        linha = linha->prox;
+		
+		    //cria um unico token com a string completa
+		    AdicionarTokenLinha(&c, buffer);
+		
+		    atr = linha;
 		}
-	}
-	return atual;
+
+        if(linha != NULL)
+            linha = linha->prox;
+    }
+    
+    printf("\n16- Antes do ultimo if (SEPARA EXPRESSOES)");
+
+    //ultimo token antes do )
+    if(linha != NULL && strcmp(linha->info, ")") == 0)
+    {
+    	printf("\n17- Dentro do ultimo if antes do ')' (SEPARA EXPRESSOES)");
+        novaP = CaixaPrograma();
+        novaP->token = c;
+
+        cabeca = novaP;
+        token = resolConLog(cabeca, *pv, funcoes);
+        if(token != NULL && atr != NULL)
+        {
+            atr->prox = token;
+            token->prox = linha;
+        }
+    }
+
+	printf("\n18- antes do return (SEPARA EXPRESSOES)");
+    return atual;
 }
 
 //funcao que trata o console.log
@@ -868,80 +920,59 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
     Token *atual = programa->token;
     Variavel *pvAux = NULL;
     char nomeVar[100];
-    char valor[200]; // buffer temporário para cada token
 
-    int flag = 1; // flag para controlar o loop sem usar break
+    int flag = 1; // flag para controlar o loop
 
-    // Pula tabs ou espaços iniciais
+    //pula tabs ou espaços iniciais
     while(atual != NULL && strcmp(atual->info, "\t") == 0)
         atual = atual->prox;
 
-    // Verifica se é console.log
-    if(atual != NULL && strcmp(atual->info, "console") == 0 && atual->prox != NULL &&
-       strcmp(atual->prox->info, ".log") == 0)
+    //verifica se e console.log
+    if(atual != NULL && atual->prox != NULL && strcmp(atual->info, "console") == 0 && strcmp(atual->prox->info, ".log") == 0)
     {
         atual = atual->prox->prox; // pular console e .log
 
-        // Pular '('
-        while(atual != NULL && strcmp(atual->info, "(") == 0)
+        //pular '('
+        if(atual != NULL && strcmp(atual->info, "(") == 0)
             atual = atual->prox;
 
-        // Loop principal de flag
+        //loop principal
         while(flag && atual != NULL)
         {
-            // Pular espaços
-            while(atual != NULL && strcmp(atual->info, " ") == 0)
+            //pular espacos e tabs
+            while(atual != NULL && (strcmp(atual->info, " ") == 0 || strcmp(atual->info, "\t") == 0))
                 atual = atual->prox;
 
-            // Checa se chegou no final dos argumentos
+            //checa se chegou no final dos argumentos
             if(atual != NULL && strcmp(atual->info, ")") == 0)
-                flag = 0; // flag para terminar o loop
+                flag = 0;
 
             if(atual != NULL && flag)
             {
-                // String literal
+                // string literal ou qualquer token único
                 if(strcmp(atual->info, "\"") == 0 || strcmp(atual->info, "'") == 0)
+                    atual = atual->prox;
+                else
                 {
-                    char aspas = atual->info[0];
-                    atual = atual->prox; // pular aspas inicial
-                    valor[0] = '\0';
+                    //verifica se e numero ou literal direto
+                    if(isdigit(atual->info[0]) || atual->info[0] == '-' || atual->info[0] == '.')
+                        strcat(mensagemPronta, atual->info);
 
-                    while(atual != NULL && strcmp(atual->info, "\"") != 0 && strcmp(atual->info, "'") != 0)
+                    else //variavel ou expressao
                     {
-                        strcat(valor, atual->info);
-                        atual = atual->prox;
+                        strcpy(nomeVar, atual->info);
+                        pvAux = buscarIdentPV(pv, nomeVar);
+                        if(pvAux != NULL)
+                            strcat(mensagemPronta, pvAux->valor);
+                        else
+                            strcat(mensagemPronta, nomeVar);
                     }
-                    strcat(mensagemPronta, valor);
-
-                    if(atual != NULL) 
-						atual = atual->prox; // pular aspas final
-                }
-                // Número ou literal direto
-                else
-				if(isdigit(atual->info[0]) || atual->info[0] == '-' || atual->info[0] == '.')
-                {
-                    strcat(mensagemPronta, atual->info);
-                    atual = atual->prox;
-                }
-                // Variável ou expressão
-                else
-                {
-                    strcpy(nomeVar, atual->info);
-                    pvAux = buscarIdentPV(pv, nomeVar);
-                    if(pvAux != NULL)
-                        strcat(mensagemPronta, pvAux->valor);
-                    else
-                        strcat(mensagemPronta, nomeVar);
-
                     atual = atual->prox;
                 }
 
-                // Se houver vírgula ou '+', adicionar espaço
-                while(atual != NULL && (strcmp(atual->info, ",") == 0 || strcmp(atual->info, "+") == 0))
-                {
+                // adiciona espaço se o próximo token não for ')'
+                if(atual != NULL && strcmp(atual->info, ")") != 0)
                     strcat(mensagemPronta, " ");
-                    atual = atual->prox;
-                }
             }
         }
     }
@@ -976,7 +1007,8 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
-			//if(isTipoVariavel(auxToken->info)) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
+			//ESTA COM ERRO NA COMPARACAO
+			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
 				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
 				auxToken = auxToken->prox;
@@ -1012,24 +1044,24 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
 				}
 			}
-		// 	else
-			if(linhaAux != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
+		 	else
+			if(auxToken->prox != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
-				pontConLog = separaExpressoes(pontConLog, &*pv, funcoes);
+				pontConLog = separaExpressoes(auxPrograma, &*pv, funcoes);
 				
 				linhaAux = pontConLog->token;
 				while(linhaAux != NULL && strcmp(linhaAux->info,"\t") == 0 )
 					linhaAux = linhaAux->prox;
 					
-				if(linhaAux != NULL && linhaAux->prox && strcmp(linhaAux->info,"console") == 0 && strcmp(linhaAux->info,".log") == 0)
+				if(linhaAux != NULL && linhaAux->prox != NULL)
 				{
 					tratarConLog(pontConLog, *pv, mensagemPronta);
 					enqueueLE(&listaConLog, mensagemPronta);
+					
+					printf("\n\nMensagem console.log: %s",mensagemPronta);
+					getch();
 				}
 				pontConLog = NULL;	
-				//APENAS PARA TESTAR!!!
-				printf("\n\nMensagem console.log: %s",mensagemPronta);
-				getch();
 			}
 			auxToken = auxToken->prox;
 		}
