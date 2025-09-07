@@ -10,8 +10,6 @@
 //#include "TAD-Pilha.h"
 //#include "TAD-PilhaLg.h" //TAD da pilha para manipular nossa lista generalizada
 
-//MENSAGEM PARA SUBIR O COMMIT
-
 //estrutura que vai armazenar nossos tokens
 struct TpToken
 {
@@ -38,7 +36,7 @@ struct TpVariavel
 };
 typedef struct TpVariavel Variavel;
 
-//estrutura que vai conter as informacao para o controle de exibiï¿½ï¿½o do nosso codigo
+//estrutura que vai conter as informacao para o controle de exibiicao do nosso codigo
 struct TpControle
 {
 	int chave, l, c;
@@ -995,7 +993,7 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
     Variavel *pvAux = NULL;
     char nomeVar[100];
 
-    int flag = 1; // flag para controlar o loop
+    int flag = 1, length; // flag para controlar o loop
 
     //pula tabs ou espaços iniciais
     while(atual != NULL && strcmp(atual->info, "\t") == 0)
@@ -1023,34 +1021,52 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
 
             if(atual != NULL && flag)
             {
-                // string literal ou qualquer token único
-                if(strcmp(atual->info, "\"") == 0 || strcmp(atual->info, "'") == 0)
-                    atual = atual->prox;
+                // >>> ignorar virgula ou +
+                if(strcmp(atual->info, ",") == 0 || strcmp(atual->info, "+") == 0)
+                {
+                    atual = atual->prox; // apenas pula
+                }
                 else
                 {
-                    //verifica se e numero ou literal direto
-                    if(isdigit(atual->info[0]) || atual->info[0] == '-' || atual->info[0] == '.')
-                        strcat(mensagemPronta, atual->info);
-
-                    else //variavel ou expressao
+                    // string literal
+                    if(strcmp(atual->info, "\"") == 0 || strcmp(atual->info, "'") == 0)
                     {
-                        strcpy(nomeVar, atual->info);
-                        pvAux = buscarIdentPV(pv, nomeVar);
-                        if(pvAux != NULL)
-                            strcat(mensagemPronta, pvAux->valor);
-                        else
-                            strcat(mensagemPronta, nomeVar);
+                        atual = atual->prox;
                     }
-                    atual = atual->prox;
-                }
+                    else
+                    {
+                        //numero ou literal direto
+                        if(isdigit(atual->info[0]) || atual->info[0] == '-' || atual->info[0] == '.')
+                        {
+                            strcat(mensagemPronta, atual->info);
+                        }
+                        else //variavel ou expressao
+                        {
+                            strcpy(nomeVar, atual->info);
+                            pvAux = buscarIdentPV(pv, nomeVar);
+                            if(pvAux != NULL)
+                                strcat(mensagemPronta, pvAux->valor);
+                            else
+                                strcat(mensagemPronta, nomeVar);
+                        }
+                        atual = atual->prox;
+                    }
 
-                // adiciona espaço se o próximo token não for ')'
-                if(atual != NULL && strcmp(atual->info, ")") != 0)
-                    strcat(mensagemPronta, " ");
+                    // adiciona espaço se o próximo token não for ')'
+                    if(atual != NULL && strcmp(atual->info, ")") != 0)
+                        strcat(mensagemPronta, " ");
+                }
             }
         }
+        length = strlen(mensagemPronta);
+		if(length > 0 && mensagemPronta[length-1] != '"' && mensagemPronta[length-1] != '\'')
+		{
+		    mensagemPronta[length] = '"';
+		    mensagemPronta[length+1] = '\0';
+		}
     }
 }
+
 
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
