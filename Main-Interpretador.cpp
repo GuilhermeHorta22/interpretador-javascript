@@ -291,11 +291,13 @@ void pushPV(Variavel **pilhaVar, Variavel auxVar)
 	*pilhaVar = nova;
 	
 	//DEBUG
+	/*
 	printf("\n\nPUSH realizado");
 	printf("\nIdentificador: %s",(*pilhaVar)->identificador);
 	printf("\nValor: %s",(*pilhaVar)->valor);
 	printf("\nPonteiro: %p",(*pilhaVar)->ponteiro);
 	printf("\nTipo: %d", (*pilhaVar)->tipo);
+	*/
 }
 
 //funcao que vai retirar uma variavel da nossa pilha de variavel
@@ -522,6 +524,36 @@ int isTipoVariavel(char *info)
 
 // -------------- FUNCOES QUE TRATA EXPRESSÃO MATEMATICA ------------------
 
+struct pilhaLG
+{
+	ListaGen *caixa;
+	struct pilhaLG *prox;
+};
+typedef struct pilhaLG PilhaLG;
+
+void initPLG(PilhaLG **P)
+{
+	*P = NULL;
+}
+void pushPLG(PilhaLG **P, ListaGen *aux)
+{
+	PilhaLG *nova = (PilhaLG*)malloc(sizeof(PilhaLG));
+	
+	nova->caixa = aux;
+	nova->prox = *P;
+	*P = nova;
+}
+
+ListaGen popLG(PilhaLG **P, ListaGen **aux)
+{
+	PilhaLG *removido = (PilhaLG*)malloc(sizeof(PilhaLG));
+	
+	*aux = (*P)->caixa;
+	removido = *P;
+	*P = (*P)->prox;
+	free(removido);
+}
+
 ListaGen *novaProf()
 {
 	ListaGen *nova = (ListaGen*)malloc(sizeof(ListaGen));
@@ -552,10 +584,10 @@ ListaGen *novaO(char operador)
 //funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
 int procuraOperador(Token* procura)
 {
-	printf("\n\n\tEntrou na funcao");
+	//printf("\n\n\tEntrou na funcao procura");
 	while(procura != NULL && !operadorMatematico(procura->info))
 		procura = procura->prox;
-	printf("\n\n\tSaiu do While");
+	//printf("\n\n\tSaiu do While");
 	if(procura != NULL)
 		return 1;
 	return 0;
@@ -572,27 +604,47 @@ void destroiLista(ListaGen **lista)
 	 }
 }
 
+void exibeLG(ListaGen *lista)
+{
+	if(lista != NULL)
+	{
+		if(lista->terminal == 'V')
+			printf("%d",lista->no.valor);
+		else if(lista->terminal == 'O')
+			printf("%c",lista->no.operador);
+		else if(lista->terminal == 'P')
+			printf("(");
+		exibeLG(lista->cabeca);
+		exibeLG(lista->cauda);
+	}
+}
+
 void constroiLG(ListaGen **lista, Token *token)
 {
 	char auxO, auxF[20];
     int auxV;
 	ListaGen *nova, *aux;
-	printf("\n\nEntrou na CONSTROI");
+	PilhaLG *P;
+	initPLG(&P);
+	
+	printf("\nEntrou na CONSTROI");
 	if((*lista)!=NULL)
 		destroiLista(&(*lista)); //RESETA a lista caso j‡ foi usada para uma expressao anterior
 	
 	aux = (*lista);
 		while(token!=NULL)
 		{
-			printf("\n\nVALOR DO TOKEN: %c",token->info);
-			printf("\n\nEntrou no WHILE CONSTROI");
+			printf("\nVALOR DO TOKEN: %s",(token)->info);
 			if(strcmp(token->info,"(")==0)
 			{
+				printf("\nABRE PARENTESE");
 				nova = novaProf();
 				aux->cauda = nova;
 				token = token->prox;
 				if(numeric(token->info))
                 {
+                	printf("\nVALOR DO TOKEN: %s",(token)->info);
+                	printf("\nNUMERIC DO PARENTESE");
                     auxV = atoi(token->info);
                     nova->cabeca = novaV(auxV);
                 }
@@ -600,25 +652,26 @@ void constroiLG(ListaGen **lista, Token *token)
 				//if(isVariavel(caracter))
 				//if(isFuncao(caracter))
 				aux = nova->cabeca;
-				//push(&P,nova);!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				pushPLG(&P,nova);
 			}
 			else if(numeric(token->info))
 			{
-				printf("\n\nEntrou no IF NUMERIC");
-                auxV = atoi(token->info);
-                printf("\n\n %d",aux);
+				printf("\nNUMERIC");
+                auxV = atoi((token)->info);
+                //printf("\n\n %d",auxV);
 				nova = novaV(auxV);
 				if(aux == NULL)
 					(*lista) = aux = nova;
 				else
 				{
-					printf("\n\nEntrou no ELSE");
+				//	printf("\n\nEntrou no ELSE");
 					aux->cauda = nova;
 					aux = nova;
 				}
 			}
 			else if(operadorMatematico(token->info))
 			{
+				printf("\n OPERADOR");
                 auxO = token->info[0];
 				nova = novaO(auxO);
 				aux->cauda = nova;
@@ -632,14 +685,33 @@ void constroiLG(ListaGen **lista, Token *token)
              {
              }
              */
-			//else if(strcmp(token->info,")")==0)
-				//pop(&P,&aux);
+			else if(strcmp(token->info,")")==0)
+			{
+				printf("\n FECHA PARENTESE");
+				popLG(&P,&aux);
+			}
+				
 			
 			token = token->prox;
 		}
+		exibeLG(*lista);
 }
 
-
+int resolveExpressao(ListaGen *lista)
+{
+	//PilhaLnt *PV;
+	//PilhaChar *PO;
+//	init(&PV);
+	
+	
+	while(lista != NULL)
+	{
+		if(lista->terminal == 'V')
+		{
+			//pushLG
+		}
+	}
+}
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
@@ -1020,10 +1092,9 @@ void executaPrograma(Programa *programa, Variavel **pv)
 					
 				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
 				if(procuraOperador(auxProcura))
-				{
-						
+				{	
 					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-					//auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+				//	auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
 				}
 				//else if(procuraFuncao(auxProcura))
 				{
