@@ -379,6 +379,20 @@ Programa *buscarToken(Programa *programa, char *tokenBusca)
 	return NULL; //nao achou o token
 }
 
+//funcao que busca uma funcao que esta na fila
+Programa *buscaFuncoes(Funcoes *f, char *nome, int *local)
+{
+	while(f != NULL && strcmp(f->function,nome) != 0)
+		f = f->prox;
+	
+	if(f != NULL && strcmp(f->function,nome) == 0)
+	{
+		*local = f->local;
+		return f->local;
+	}
+	return NULL;
+}
+
 //funcao que cria a caixa do nosso token
 Token *CaixaToken(char *info) 
 {
@@ -1406,7 +1420,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				
 				//ExibirPrograma(*programa);
 				op = getch();
-				/*
+
 				auxP = *programa;
 				while(auxP != NULL)
 				{
@@ -1452,7 +1466,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				}
 				//auxP = atual;
 				numUse = atual;
-				*/
+
 				break;
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
