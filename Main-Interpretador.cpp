@@ -77,7 +77,7 @@ typedef struct TpListaEncadeada listaEncadeada;
 union info_lista
 {
 	int valor;
-	char operador;
+	char operador[3];
 	//implementar função tbm!!!
 };
 
@@ -378,7 +378,7 @@ Programa *buscarToken(Programa *programa, char *tokenBusca)
 	}
 	return NULL; //nao achou o token
 }
-
+/*
 //funcao que busca uma funcao que esta na fila
 Programa *buscaFuncoes(Funcoes *f, char *nome, int *local)
 {
@@ -392,7 +392,7 @@ Programa *buscaFuncoes(Funcoes *f, char *nome, int *local)
 	}
 	return NULL;
 }
-
+*/
 //funcao que cria a caixa do nosso token
 Token *CaixaToken(char *info) 
 {
@@ -543,10 +543,42 @@ struct pilhaLG
 };
 typedef struct pilhaLG PilhaLG;
 
+struct no_pilhaValor{
+	float valor;
+	struct no_pilhaValor *prox;
+};
+typedef struct no_pilhaValor NoPilhaValor;
+
+struct pilhavalor{
+	struct no_pilhaValor *topo;	
+};
+typedef struct pilhavalor PilhaValor;
+
+struct no_pilhaOperador{
+	char operador[3];
+	struct no_pilhaOperador *prox;
+};
+typedef struct no_pilhaOperador NoPilhaOperador;
+
+struct pilhaoperador{
+	struct no_pilhaOperador *topo;
+};
+typedef struct pilhaoperador PilhaOperador;
+
+
 void initPLG(PilhaLG **P)
 {
 	*P = NULL;
 }
+
+char Nula(ListaGen *L){
+	return L == NULL;
+}
+
+char isEmptyPilhaOperador(PilhaOperador * P){
+	return P -> topo == NULL;
+}
+
 void pushPLG(PilhaLG **P, ListaGen *aux)
 {
 	PilhaLG *nova = (PilhaLG*)malloc(sizeof(PilhaLG));
@@ -584,13 +616,41 @@ ListaGen *novaV(int valor)
 	return nova;
 }
 
-ListaGen *novaO(char operador)
+ListaGen *novaO(char *operador)
 {
 	ListaGen *nova = (ListaGen*)malloc(sizeof(ListaGen));
 	nova->terminal = 'O';
-	nova->no.operador = operador;
+	strcpy(nova->no.operador,operador);
 	nova->cabeca = nova->cauda = NULL;
 	return nova;
+}
+
+void pushValor(PilhaValor * * P, float valor){
+	no_pilhaValor *novoNo = (no_pilhaValor *)malloc(sizeof(no_pilhaValor));
+	novoNo -> valor = valor;
+	novoNo -> prox = (*P) -> topo;
+	(*P) -> topo = novoNo; 
+}
+
+void pushOperador(PilhaOperador * * P, char *operador){
+	NoPilhaOperador *novoNo = (NoPilhaOperador *)malloc(sizeof(NoPilhaOperador));
+	strcpy(novoNo->operador, operador);
+	novoNo->prox = (*P)->topo;
+	(*P)->topo = novoNo;
+}
+
+void popValor(PilhaValor * * P, float * valor){
+	*valor = (*P) -> topo -> valor;
+	NoPilhaValor *noRemovido = (*P) -> topo;
+	(*P) -> topo = (*P) -> topo -> prox;
+	free(noRemovido);
+}
+
+void popOperador(PilhaOperador * * P, char *operador){
+	strcpy(operador, (*P) -> topo -> operador);
+	NoPilhaOperador *noRemovido = (*P) -> topo;
+	(*P) -> topo = (*P) -> topo -> prox;
+	free(noRemovido);
 }
 
 //funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
@@ -633,30 +693,30 @@ void exibeLG(ListaGen *lista)
 
 void constroiLG(ListaGen **lista, Token *token)
 {
-	char auxO, auxF[20];
+	char auxO[3], auxF[20];
     int auxV;
 	ListaGen *nova, *aux;
 	PilhaLG *P;
 	initPLG(&P);
 	
-	printf("\nEntrou na CONSTROI");
+	//printf("\nEntrou na CONSTROI");
 	if((*lista)!=NULL)
 		destroiLista(&(*lista)); //RESETA a lista caso j‡ foi usada para uma expressao anterior
 	
 	aux = (*lista);
 		while(token!=NULL)
 		{
-			printf("\nVALOR DO TOKEN: %s",(token)->info);
+			//printf("\nVALOR DO TOKEN: %s",(token)->info);
 			if(strcmp(token->info,"(")==0)
 			{
-				printf("\nABRE PARENTESE");
+				//printf("\nABRE PARENTESE");
 				nova = novaProf();
 				aux->cauda = nova;
 				token = token->prox;
 				if(numeric(token->info))
                 {
-                	printf("\nVALOR DO TOKEN: %s",(token)->info);
-                	printf("\nNUMERIC DO PARENTESE");
+                //	printf("\nVALOR DO TOKEN: %s",(token)->info);
+                //	printf("\nNUMERIC DO PARENTESE");
                     auxV = atoi(token->info);
                     nova->cabeca = novaV(auxV);
                 }
@@ -668,7 +728,7 @@ void constroiLG(ListaGen **lista, Token *token)
 			}
 			else if(numeric(token->info))
 			{
-				printf("\nNUMERIC");
+			//	printf("\nNUMERIC");
                 auxV = atoi((token)->info);
                 //printf("\n\n %d",auxV);
 				nova = novaV(auxV);
@@ -683,8 +743,8 @@ void constroiLG(ListaGen **lista, Token *token)
 			}
 			else if(operadorMatematico(token->info))
 			{
-				printf("\n OPERADOR");
-                auxO = token->info[0];
+			//	printf("\n OPERADOR");
+				strcpy(auxO,token->info);
 				nova = novaO(auxO);
 				aux->cauda = nova;
 				aux = nova;
@@ -699,7 +759,7 @@ void constroiLG(ListaGen **lista, Token *token)
              */
 			else if(strcmp(token->info,")")==0)
 			{
-				printf("\n FECHA PARENTESE");
+			//	printf("\n FECHA PARENTESE");
 				popLG(&P,&aux);
 			}
 				
@@ -709,20 +769,157 @@ void constroiLG(ListaGen **lista, Token *token)
 		exibeLG(*lista);
 }
 
-int resolveExpressao(ListaGen *lista)
+void initPOperador(PilhaOperador * * P){
+	*P = (PilhaOperador*)malloc(sizeof(PilhaOperador));
+	(*P) -> topo = NULL;
+}
+
+void initPValor(PilhaValor * * P){
+	*P = (PilhaValor*)malloc(sizeof(PilhaValor));
+	(*P) -> topo = NULL;
+}
+
+int prioridade(char *operador) {
+    if (strcmp(operador, "+") == 0 || strcmp(operador, "-") == 0) {
+        return 1;
+    } 
+    else if (strcmp(operador, "*") == 0 || strcmp(operador, "/") == 0 || strcmp(operador, "%") == 0 || strcmp(operador, "//") == 0) {
+        return 2;
+    } 
+    else if (strcmp(operador, "**") == 0) {
+        return 3;
+    }
+    return 0; // Para operadores não reconhecidos
+}
+
+// %(resto) int ou float só precisa do float pq o int usa %
+float restoF(float num, float div)
 {
-	//PilhaLnt *PV;
-	//PilhaChar *PO;
-//	init(&PV);
+	float res;
 	
+	res = num/div;
+	res = div*(int)res;
+	res = num-res;
 	
-	while(lista != NULL)
+	return res;
+}
+
+union  INFO
+{
+	char str[30];
+	int i;
+	float f;
+};
+
+float Expoen(float nume, float Ex)
+{
+	INFO res;
+	res.f = nume;
+	
+	if(Ex != 0)
 	{
-		if(lista->terminal == 'V')
+		while(Ex > 1)
 		{
-			//pushLG
+			res.f =  res.f * nume;
+			Ex--;
 		}
 	}
+	else
+	{
+		res.f = 1;
+	}
+	
+	return res.f;
+}
+
+float calculaEquacao(ListaGen * caixa) {
+    PilhaOperador *POperador;
+    PilhaValor *PValor;
+    
+    initPOperador(&POperador); 
+    initPValor(&PValor);
+    
+    char op[3];
+    float resultado, val1, val2;
+    printf("\n\nENTROU NO CALCULA EQUACAO");
+    while(!Nula(caixa)) {
+    	// acho que o erro esta aqui
+        if(caixa->terminal == 'V') {
+            pushValor(&PValor, caixa->no.valor);
+            printf("Possivel Erro %f",PValor->topo->valor);
+        }
+        
+        if(caixa->terminal == 'O') {
+        //	exibirPilhaOperador(POperador);
+            
+			while(!isEmptyPilhaOperador(POperador) && prioridade(caixa->no.operador) <= prioridade(POperador->topo->operador)) 
+			{
+				
+                popOperador(&POperador, op);
+                popValor(&PValor, &val1);
+                popValor(&PValor, &val2);
+                
+                printf("\ncalculaEquacao: \nop: %s\n",op);
+                printf("\nAntes: val1: %.2f, val2: %.2f\n", val1, val2);
+                
+                if (strcmp(op, "+") == 0) {
+				    pushValor(&PValor, val2 + val1);
+				} else if (strcmp(op, "-") == 0) {
+				    pushValor(&PValor, val2 - val1);
+				} else if (strcmp(op, "*") == 0) {
+				    pushValor(&PValor, val2 * val1);
+				} else if (strcmp(op, "/") == 0) {
+				    pushValor(&PValor, val2 / val1);
+				} else if (strcmp(op, "%") == 0) {
+					pushValor(&PValor, restoF(val1, val2));
+				} else if (strcmp(op, "//") == 0) {
+					pushValor(&PValor, (int)val2/(int)val1);
+				} else if (strcmp(op, "**") == 0) {
+				    pushValor(&PValor, Expoen(val2, val1));
+				}
+				
+				printf("\ndepois: val1: %.2f, val2: %.2f\n", val1, val2);
+            }
+            
+            pushOperador(&POperador, caixa->no.operador);
+            printf("\noperador depois do push: %s", caixa->no.operador);
+        }
+        
+        caixa = caixa->cauda;
+    }
+    
+    while(!isEmptyPilhaOperador(POperador)) {
+        popOperador(&POperador, op);
+        popValor(&PValor, &val1);
+        popValor(&PValor, &val2);
+    
+        
+        printf("\ncalculaEquacao: op: %s\n",op);
+        printf("\nantes: val1: %.2f, val2: %.2f\n", val1, val2);
+        
+        if (strcmp(op, "+") == 0) {
+		    pushValor(&PValor, val2 + val1);
+		} else if (strcmp(op, "-") == 0) {
+		    pushValor(&PValor, val2 - val1);
+		} else if (strcmp(op, "*") == 0) {
+		    pushValor(&PValor, val2 * val1);
+		} else if (strcmp(op, "/") == 0) {
+		    pushValor(&PValor, val2 / val1);
+		} else if (strcmp(op, "%") == 0) {
+			pushValor(&PValor, restoF(val1, val2));
+		} else if (strcmp(op, "//") == 0) {
+			pushValor(&PValor, (int)val2/(int)val1);
+		} else if (strcmp(op, "**") == 0) {
+		    pushValor(&PValor, Expoen(val2, val1));
+		}
+		
+		printf("\ndepois: val1: %.2f, val2: %.2f\n", val1, val2);
+		
+    }
+    
+    popValor(&PValor, &resultado);
+    printf("\nresultado: %.2f", resultado);
+    return resultado;
 }
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
@@ -1124,7 +1321,9 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				if(procuraOperador(auxProcura))
 				{	
 					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-				//	auxVar.valor = resolveExpressao(listaCalcula); //Vai jogar para a ListaGen que resolve calculos, e depois retornar para valor.
+					// Converte o float para string usando sprintf()
+    				sprintf(auxVar.valor, "%f", calculaEquacao(listaCalcula));
+    				printf("\n\n\n\nVALOR DA EQUACAO: %s",auxVar.valor);
 				}
 				//else if(procuraFuncao(auxProcura))
 				{
