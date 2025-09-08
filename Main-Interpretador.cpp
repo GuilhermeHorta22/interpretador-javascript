@@ -1326,15 +1326,15 @@ void executaPrograma(Programa *programa, Variavel **pv)
     				printf("\n\n\n\nVALOR DA EQUACAO: %s",auxVar.valor);
 				}
 				//else if(procuraFuncao(auxProcura))
-				{
+				//{
 						
 					//}
 					//caso não seja função ou conta;
-					//else
-					//{
+				else
+				{
 						strcpy(auxVar.valor, auxToken->info);
 						auxToken = auxToken->prox;
-					//}
+					}
 					
 					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
 						
@@ -1344,7 +1344,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 						auxVar.tipo = 1;
 	
 					pushPV(pv,auxVar); //Passar a pilha, e a variavel
-				}
+				//}
 			}
 		 	else
 			if(auxToken->prox != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
