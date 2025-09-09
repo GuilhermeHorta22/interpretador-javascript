@@ -3,7 +3,7 @@ function ola()
     const num = 10;
     if(num>5)
     {
-        console.log("ola guilherme dentro do if da function");
+        console.log("dentro do if da function OLA");
     }
 }
 function soma()
@@ -13,8 +13,10 @@ function soma()
     {
         if(num < 20)
         {
-            console.log("testando");
+            console.log("dentro da function SOMA");
         }
     }
 }
 console.log("ola guilherme fora da function");
+ola();
+soma();

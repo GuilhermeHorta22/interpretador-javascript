@@ -1278,19 +1278,27 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
     }
 }
 
-
+//funcao que busca function pelo nome e retorna o endereco dela
+Programa *buscaFuncoes(Funcoes *funcoes, char *token)
+{
+	while(funcoes != NULL && strcmp(funcoes->function,token) != 0)
+		funcoes = funcoes->prox;
+		
+	if(funcoes != NULL && strcmp(funcoes->function,token) == 0)
+		return funcoes->local;
+	else
+		return NULL;
+}
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
-void executaPrograma(Programa *programa, Variavel **pv)
+void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
 	Token *auxToken, *auxProcura, *linhaAux;
-	Programa *auxPrograma, *pontConLog; //pontConLog = endereço de onde tem um console.log
+	Programa *auxPrograma, *pontConLog, *auxLocalFun; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
-	
-	Funcoes *funcoes;
 	
 	//lista encadeada que vai guardar as informações dos console.log
 	listaEncadeada *listaConLog;
@@ -1308,6 +1316,10 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
+			//funcao que busca uma funcao e retorna o local dela
+			auxLocalFun = buscaFuncoes(funcoes, auxToken->info);
+			//printf("\nLocal da function OLA: %p",auxLocalFun); // PARA TESTE
+			
 			//ESTA COM ERRO NA COMPARACAO
 			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
@@ -1365,6 +1377,19 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				}
 				pontConLog = NULL;	
 			}
+			else
+			if(auxLocalFun != NULL) //achou a funcao
+			{
+				auxPrograma = auxLocalFun; // posicionando onde esta a function
+				//printf("\nLocal da function OLA: %p",auxPrograma); //PARA TESTE
+				auxToken = auxPrograma->token;
+				
+				//pula function
+				auxToken = auxToken->prox;
+				//pula o nome da function
+				auxToken = auxToken->prox;
+			}
+			
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
@@ -1630,6 +1655,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				auxP = *programa;
 				//ExibirPrograma(auxP); //PARA TESTE
 				op = getch();
+				//printf("\nLocal da function OLA: %p",auxP); //PARA TESTE
+				getch();
 
 				chave = 1;
 				while(auxP != NULL && chave > 0)
@@ -1676,7 +1703,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				//nao sei se estaria correto como estou passando
-				executaPrograma(atual, &pvAux);
+				executaPrograma(atual, &pvAux, funcoes);
 				op = getch();
 //				limpaTela(1, 1, 90, 90);
 //				gotoxy(1,1);
