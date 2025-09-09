@@ -1572,7 +1572,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
 	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
-	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
+	Programa *atual= NULL, *auxP = *programa;
+	//Programa *listaPrograma, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
 	Variavel *pvAux = *pv;
@@ -1600,7 +1601,6 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	//chamando o menu de opcoes do programa
 	op = menu();
 	
-	auxP = atual;
 	//inicia Fila de funções
 	initF(&funcoes);
 	
@@ -1621,56 +1621,54 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				op = getch();
 
 				auxP = *programa;
-				while(auxP != NULL)
+				printf("\nAntes do while");
+				chave=1;
+				while(auxP != NULL && chave > 0)
 				{
+					chave=0;
 					linha = auxP->token; //recebe a primeira linha
-					
+					printf("\ndentro do while | Linha: %s",linha->info);
 					if(strcmp(linha->info, "function") == 0) //verificando se achou uma funcao
 					{
 						//vamos inserir a function
+						linha = linha->prox;
 						enqueueF(&funcoes,linha->info,l,auxP);
 						l++;
 						
 						auxP = auxP->prox;
 						if(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
 						{
-							auxP = auxP->prox;
 							chave++;
+							auxP = auxP->prox;
 						}
-							
-						if(auxP != NULL)
-							linha = auxP->token;
 						
-						while(auxP != NULL && auxP->token != NULL && chave > 0)
+						while(auxP != NULL && chave > 0)
 				        {
-				        	if(strcmp(linha->info,"{") == 0)
-				        		chave++;
-				        	else
-				        	if(strcmp(linha->info,"}") == 0)
-				        		chave--;
-				        	
-				            auxP = auxP->prox;
-				            if(auxP != NULL)
-				            {
-				                linha = auxP->token;
-				                l++;
-				            }
+				        	printf("\ndentro do while | Token atual: %s",linha->info);
+				        	linha = auxP->token;
+
+					        if(strcmp(linha->info, "{") == 0)
+					            chave++;
+					        else
+							if(strcmp(linha->info, "}") == 0)
+					            chave--;
+					
+					        // só avança se ainda estamos dentro da função
+					        if(chave > 0)
+					            auxP = auxP->prox;
 				        }
 				
 				        if(auxP != NULL)
 				        	atual = auxP->prox;
 					}
-					else //andar se caso nao achou um function
-            			auxP = auxP->prox;
 				}
-				//auxP = atual;
-				numUse = atual;
+				atual = auxP;
 
 				break;
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				//nao sei se estaria correto como estou passando
-				executaPrograma(*programa, &pvAux);
+				executaPrograma(atual, &pvAux);
 				op = getch();
 //				limpaTela(1, 1, 90, 90);
 //				gotoxy(1,1);
