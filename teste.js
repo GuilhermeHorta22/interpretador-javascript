@@ -18,5 +18,5 @@ function soma()
     }
 }
 console.log("ola guilherme fora da function");
-ola();
 soma();
+ola();
