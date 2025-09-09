@@ -1479,11 +1479,11 @@ void ExibirPrograma(Programa *programa)
             tokenAtual = tokenAtual->prox;
             contToken++;
         }
+        printf("\n");
         //printf("\n");
         linhaAtual = linhaAtual->prox;
         tokenAtual = linhaAtual->token;
         numLinha++;
-        contToken--;
     }
 }
 
@@ -1563,7 +1563,18 @@ char menu()
 
 //void posicionaCursor(Programa *p, int lin, int pos)
 
-
+//funcao que exibe o nome e o local das funcoes do programa
+void exibeFuncoes(Funcoes *funcoes)
+{
+	int cont = 1;
+	while(funcoes != NULL)
+	{
+		printf("\nFuncao %d: %s",cont,funcoes->function);
+		printf("\nLocal: %p\n",funcoes->local);
+		cont++;
+		funcoes = funcoes->prox;
+	}
+}
 
 //funcao que simula a execucao do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
@@ -1572,7 +1583,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
 	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
-	Programa *atual= NULL, *auxP = *programa;
+	Programa *atual= NULL, *auxP = NULL;
 	//Programa *listaPrograma, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
@@ -1610,59 +1621,56 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 		switch(op)
 		{
 			case 65: //F7 - Abrir arquivo .js
-				//essa parte aqui era do main
 				printf("\nNome do arquivo: ");
 				fflush(stdin);
 				gets(nomeArquivo);
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
-				//ExibirPrograma(*programa);
+				auxP = *programa;
+				//ExibirPrograma(auxP); //PARA TESTE
 				op = getch();
 
-				auxP = *programa;
-				printf("\nAntes do while");
-				chave=1;
+				chave = 1;
 				while(auxP != NULL && chave > 0)
 				{
-					chave=0;
-					linha = auxP->token; //recebe a primeira linha
-					printf("\ndentro do while | Linha: %s",linha->info);
-					if(strcmp(linha->info, "function") == 0) //verificando se achou uma funcao
+					chave = 0;
+					linha = auxP->token;
+					if(linha != NULL && strcmp(linha->info,"function") == 0) //achou uma função
 					{
-						//vamos inserir a function
-						linha = linha->prox;
-						enqueueF(&funcoes,linha->info,l,auxP);
+						linha = linha->prox; //esta no nome da function
+						enqueueF(&funcoes, linha->info, l, auxP);
 						l++;
 						
 						auxP = auxP->prox;
-						if(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
+						linha = auxP->token;
+						
+						if(linha != NULL && strcmp(linha->info,"{") == 0)
 						{
 							chave++;
 							auxP = auxP->prox;
 						}
 						
-						while(auxP != NULL && chave > 0)
-				        {
-				        	printf("\ndentro do while | Token atual: %s",linha->info);
-				        	linha = auxP->token;
-
-					        if(strcmp(linha->info, "{") == 0)
-					            chave++;
-					        else
-							if(strcmp(linha->info, "}") == 0)
-					            chave--;
-					
-					        // só avança se ainda estamos dentro da função
-					        if(chave > 0)
-					            auxP = auxP->prox;
-				        }
-				
-				        if(auxP != NULL)
-				        	atual = auxP->prox;
+						while(chave > 0) //chave maior que 0 indica que ainda está na function
+						{
+							linha = auxP->token;
+							if(strcmp(linha->info,"{") == 0)
+								chave++;
+							else
+							if(strcmp(linha->info,"}") == 0)
+								chave--;
+							
+							auxP = auxP->prox;
+						}
+						
+						linha = auxP->token;
+						if(linha != NULL && strcmp(linha->info,"function") == 0)
+							chave = 1;
 					}
 				}
 				atual = auxP;
+				
+				//exibeFuncoes(funcoes); //PARA TESTE
 
 				break;
 			

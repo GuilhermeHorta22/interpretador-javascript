@@ -1,12 +1,20 @@
-function dizerOi()
-{
-    const num = 10;
-}
 function ola()
 {
-    console.log("ola guilherme");
+    const num = 10;
+    if(num>5)
+    {
+        console.log("ola guilherme dentro do if da function");
+    }
 }
-console.log("Bom dia guilherme");
-console.log("idade: ",21);
-dizerOi();
-ola();
+function soma()
+{
+    const num = 10;
+    if(num>5)
+    {
+        if(num < 20)
+        {
+            console.log("testando");
+        }
+    }
+}
+console.log("ola guilherme fora da function");
