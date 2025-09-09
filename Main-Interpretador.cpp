@@ -1322,7 +1322,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				{	
 					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
 					// Converte o float para string usando sprintf()
-    				sprintf(auxVar.valor, "%f", calculaEquacao(listaCalcula));
+    				sprintf(auxVar.valor, "%1.f", calculaEquacao(listaCalcula));
     				printf("\n\n\n\nVALOR DA EQUACAO: %s",auxVar.valor);
 				}
 				//else if(procuraFuncao(auxProcura))
