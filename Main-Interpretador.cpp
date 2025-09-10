@@ -1260,16 +1260,27 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
     }
 }
 
-void executaPrograma(Programa *programa, Variavel **pv)
+//funcao que busca function pelo nome e retorna o endereco dela
+Programa *buscaFuncoes(Funcoes *funcoes, char *token)
+{
+	while(funcoes != NULL && strcmp(funcoes->function,token) != 0)
+		funcoes = funcoes->prox;
+		
+	if(funcoes != NULL && strcmp(funcoes->function,token) == 0)
+		return funcoes->local;
+	else
+		return NULL;
+}
+
+//CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
+void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
 	Token *auxToken, *auxProcura, *linhaAux;
-	Programa *auxPrograma, *pontConLog; //pontConLog = endereço de onde tem um console.log
+	Programa *auxPrograma, *pontConLog, *auxLocalFun; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
-	
-	Funcoes *funcoes;
 	
 	//lista encadeada que vai guardar as informações dos console.log
 	listaEncadeada *listaConLog;
@@ -1287,6 +1298,11 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
+			//funcao que busca uma funcao e retorna o local dela
+			auxLocalFun = buscaFuncoes(funcoes, auxToken->info);
+			//printf("\nLocal da function OLA: %p",auxLocalFun); // PARA TESTE
+			
+			//ESTA COM ERRO NA COMPARACAO
 			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
 				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
@@ -1342,6 +1358,19 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				}
 				pontConLog = NULL;	
 			}
+			else
+			if(auxLocalFun != NULL) //achou a funcao
+			{
+				auxPrograma = auxLocalFun; // posicionando onde esta a function
+				//printf("\nLocal da function OLA: %p",auxPrograma); //PARA TESTE
+				auxToken = auxPrograma->token;
+				
+				//pula function
+				auxToken = auxToken->prox;
+				//pula o nome da function
+				auxToken = auxToken->prox;
+			}
+			
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
@@ -1456,11 +1485,11 @@ void ExibirPrograma(Programa *programa)
             tokenAtual = tokenAtual->prox;
             contToken++;
         }
+        printf("\n");
         //printf("\n");
         linhaAtual = linhaAtual->prox;
         tokenAtual = linhaAtual->token;
         numLinha++;
-        contToken--;
     }
 }
 
@@ -1540,7 +1569,18 @@ char menu()
 
 //void posicionaCursor(Programa *p, int lin, int pos)
 
-
+//funcao que exibe o nome e o local das funcoes do programa
+void exibeFuncoes(Funcoes *funcoes)
+{
+	int cont = 1;
+	while(funcoes != NULL)
+	{
+		printf("\nFuncao %d: %s",cont,funcoes->function);
+		printf("\nLocal: %p\n",funcoes->local);
+		cont++;
+		funcoes = funcoes->prox;
+	}
+}
 
 //funcao que simula a execucao do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
@@ -1549,7 +1589,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
 	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
-	Programa *atual=*programa, *listaPrograma, *auxP, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
+	Programa *atual= NULL, *auxP = NULL;
+	//Programa *listaPrograma, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
 	
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
 	Variavel *pvAux = *pv;
@@ -1577,7 +1618,6 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	//chamando o menu de opcoes do programa
 	op = menu();
 	
-	auxP = atual;
 	//inicia Fila de funções
 	initF(&funcoes);
 	
@@ -1587,67 +1627,64 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 		switch(op)
 		{
 			case 65: //F7 - Abrir arquivo .js
-				//essa parte aqui era do main
 				printf("\nNome do arquivo: ");
 				fflush(stdin);
 				gets(nomeArquivo);
 				
 				lerArquivo(nomeArquivo, &*programa);
 				
-				//ExibirPrograma(*programa);
-				op = getch();
-
 				auxP = *programa;
-				while(auxP != NULL)
+				//ExibirPrograma(auxP); //PARA TESTE
+				op = getch();
+				//printf("\nLocal da function OLA: %p",auxP); //PARA TESTE
+				getch();
+
+				chave = 1;
+				while(auxP != NULL && chave > 0)
 				{
-					linha = auxP->token; //recebe a primeira linha
-					
-					if(strcmp(linha->info, "function") == 0) //verificando se achou uma funcao
+					chave = 0;
+					linha = auxP->token;
+					if(linha != NULL && strcmp(linha->info,"function") == 0) //achou uma função
 					{
-						//vamos inserir a function
-						enqueueF(&funcoes,linha->info,l,auxP);
+						linha = linha->prox; //esta no nome da function
+						enqueueF(&funcoes, linha->info, l, auxP);
 						l++;
 						
 						auxP = auxP->prox;
-						if(auxP != NULL && auxP->token != NULL && strcmp(auxP->token->info, "{") == 0)
-						{
-							auxP = auxP->prox;
-							chave++;
-						}
-							
-						if(auxP != NULL)
-							linha = auxP->token;
+						linha = auxP->token;
 						
-						while(auxP != NULL && auxP->token != NULL && chave > 0)
-				        {
-				        	if(strcmp(linha->info,"{") == 0)
-				        		chave++;
-				        	else
-				        	if(strcmp(linha->info,"}") == 0)
-				        		chave--;
-				        	
-				            auxP = auxP->prox;
-				            if(auxP != NULL)
-				            {
-				                linha = auxP->token;
-				                l++;
-				            }
-				        }
-				
-				        if(auxP != NULL)
-				        	atual = auxP->prox;
+						if(linha != NULL && strcmp(linha->info,"{") == 0)
+						{
+							chave++;
+							auxP = auxP->prox;
+						}
+						
+						while(chave > 0) //chave maior que 0 indica que ainda está na function
+						{
+							linha = auxP->token;
+							if(strcmp(linha->info,"{") == 0)
+								chave++;
+							else
+							if(strcmp(linha->info,"}") == 0)
+								chave--;
+							
+							auxP = auxP->prox;
+						}
+						
+						linha = auxP->token;
+						if(linha != NULL && strcmp(linha->info,"function") == 0)
+							chave = 1;
 					}
-					else //andar se caso nao achou um function
-            			auxP = auxP->prox;
 				}
-				//auxP = atual;
-				numUse = atual;
+				atual = auxP;
+				
+				//exibeFuncoes(funcoes); //PARA TESTE
 
 				break;
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				//nao sei se estaria correto como estou passando
-				executaPrograma(*programa, &pvAux);
+				executaPrograma(atual, &pvAux, funcoes);
 				op = getch();
 //				limpaTela(1, 1, 90, 90);
 //				gotoxy(1,1);
