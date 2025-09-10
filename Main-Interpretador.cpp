@@ -840,27 +840,23 @@ float calculaEquacao(ListaGen * caixa) {
     initPValor(&PValor);
     
     char op[3];
-    float resultado, val1, val2;
-    printf("\n\nENTROU NO CALCULA EQUACAO");
+    float resultado, subResultado, val1, val2;
+    
     while(!Nula(caixa)) {
-    	// acho que o erro esta aqui
-        if(caixa->terminal == 'V') {
+        if(caixa->terminal == 'V') 
             pushValor(&PValor, caixa->no.valor);
-            printf("Possivel Erro %f",PValor->topo->valor);
+        else if(caixa->terminal == 'P')
+        {
+        	float subResultado = calculaEquacao(caixa->cabeca);
+    		pushValor(&PValor, subResultado);
         }
-        
-        if(caixa->terminal == 'O') {
-        //	exibirPilhaOperador(POperador);
+        else if(caixa->terminal == 'O') {
             
 			while(!isEmptyPilhaOperador(POperador) && prioridade(caixa->no.operador) <= prioridade(POperador->topo->operador)) 
-			{
-				
+			{	
                 popOperador(&POperador, op);
                 popValor(&PValor, &val1);
                 popValor(&PValor, &val2);
-                
-                printf("\ncalculaEquacao: \nop: %s\n",op);
-                printf("\nAntes: val1: %.2f, val2: %.2f\n", val1, val2);
                 
                 if (strcmp(op, "+") == 0) {
 				    pushValor(&PValor, val2 + val1);
@@ -877,14 +873,9 @@ float calculaEquacao(ListaGen * caixa) {
 				} else if (strcmp(op, "**") == 0) {
 				    pushValor(&PValor, Expoen(val2, val1));
 				}
-				
-				printf("\ndepois: val1: %.2f, val2: %.2f\n", val1, val2);
             }
-            
             pushOperador(&POperador, caixa->no.operador);
-            printf("\noperador depois do push: %s", caixa->no.operador);
         }
-        
         caixa = caixa->cauda;
     }
     
@@ -892,11 +883,7 @@ float calculaEquacao(ListaGen * caixa) {
         popOperador(&POperador, op);
         popValor(&PValor, &val1);
         popValor(&PValor, &val2);
-    
-        
-        printf("\ncalculaEquacao: op: %s\n",op);
-        printf("\nantes: val1: %.2f, val2: %.2f\n", val1, val2);
-        
+     
         if (strcmp(op, "+") == 0) {
 		    pushValor(&PValor, val2 + val1);
 		} else if (strcmp(op, "-") == 0) {
@@ -911,14 +898,9 @@ float calculaEquacao(ListaGen * caixa) {
 			pushValor(&PValor, (int)val2/(int)val1);
 		} else if (strcmp(op, "**") == 0) {
 		    pushValor(&PValor, Expoen(val2, val1));
-		}
-		
-		printf("\ndepois: val1: %.2f, val2: %.2f\n", val1, val2);
-		
+		}	
     }
-    
     popValor(&PValor, &resultado);
-    printf("\nresultado: %.2f", resultado);
     return resultado;
 }
 
@@ -1278,9 +1260,6 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
     }
 }
 
-
-
-//CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv)
 {
 	Variavel auxVar;
@@ -1308,7 +1287,6 @@ void executaPrograma(Programa *programa, Variavel **pv)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
-			//ESTA COM ERRO NA COMPARACAO
 			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
 			{
 				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
@@ -1322,8 +1300,7 @@ void executaPrograma(Programa *programa, Variavel **pv)
 				{	
 					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
 					// Converte o float para string usando sprintf()
-    				sprintf(auxVar.valor, "%1.f", calculaEquacao(listaCalcula));
-    				printf("\n\n\n\nVALOR DA EQUACAO: %s",auxVar.valor);
+    				sprintf(auxVar.valor, "%2.f", calculaEquacao(listaCalcula));
 				}
 				//else if(procuraFuncao(auxProcura))
 				//{
