@@ -378,21 +378,20 @@ Programa *buscarToken(Programa *programa, char *tokenBusca)
 	}
 	return NULL; //nao achou o token
 }
-/*
-//funcao que busca uma funcao que esta na fila
-Programa *buscaFuncoes(Funcoes *f, char *nome, int *local)
+
+//funcao que exibe o nome e o local das funcoes do programa
+void exibeFuncoes(Funcoes *funcoes)
 {
-	while(f != NULL && strcmp(f->function,nome) != 0)
-		f = f->prox;
-	
-	if(f != NULL && strcmp(f->function,nome) == 0)
+	int cont = 1;
+	while(funcoes != NULL)
 	{
-		*local = f->local;
-		return f->local;
+		printf("\nFuncao %d: %s",cont,funcoes->function);
+		printf("\nLocal: %p\n",funcoes->local);
+		cont++;
+		funcoes = funcoes->prox;
 	}
-	return NULL;
 }
-*/
+
 //funcao que cria a caixa do nosso token
 Token *CaixaToken(char *info) 
 {
@@ -534,6 +533,7 @@ int isTipoVariavel(char *info)
 	return -1; // nao e uma variavel
 }
 
+
 // -------------- FUNCOES QUE TRATA EXPRESSÃO MATEMATICA ------------------
 
 struct pilhaLG
@@ -543,24 +543,28 @@ struct pilhaLG
 };
 typedef struct pilhaLG PilhaLG;
 
-struct no_pilhaValor{
+struct no_pilhaValor
+{
 	float valor;
 	struct no_pilhaValor *prox;
 };
 typedef struct no_pilhaValor NoPilhaValor;
 
-struct pilhavalor{
+struct pilhavalor
+{
 	struct no_pilhaValor *topo;	
 };
 typedef struct pilhavalor PilhaValor;
 
-struct no_pilhaOperador{
+struct no_pilhaOperador
+{
 	char operador[3];
 	struct no_pilhaOperador *prox;
 };
 typedef struct no_pilhaOperador NoPilhaOperador;
 
-struct pilhaoperador{
+struct pilhaoperador
+{
 	struct no_pilhaOperador *topo;
 };
 typedef struct pilhaoperador PilhaOperador;
@@ -571,11 +575,13 @@ void initPLG(PilhaLG **P)
 	*P = NULL;
 }
 
-char Nula(ListaGen *L){
+char Nula(ListaGen *L)
+{
 	return L == NULL;
 }
 
-char isEmptyPilhaOperador(PilhaOperador * P){
+char isEmptyPilhaOperador(PilhaOperador * P)
+{
 	return P -> topo == NULL;
 }
 
@@ -625,28 +631,32 @@ ListaGen *novaO(char *operador)
 	return nova;
 }
 
-void pushValor(PilhaValor * * P, float valor){
+void pushValor(PilhaValor **P, float valor)
+{
 	no_pilhaValor *novoNo = (no_pilhaValor *)malloc(sizeof(no_pilhaValor));
 	novoNo -> valor = valor;
 	novoNo -> prox = (*P) -> topo;
 	(*P) -> topo = novoNo; 
 }
 
-void pushOperador(PilhaOperador * * P, char *operador){
+void pushOperador(PilhaOperador **P, char *operador)
+{
 	NoPilhaOperador *novoNo = (NoPilhaOperador *)malloc(sizeof(NoPilhaOperador));
 	strcpy(novoNo->operador, operador);
 	novoNo->prox = (*P)->topo;
 	(*P)->topo = novoNo;
 }
 
-void popValor(PilhaValor * * P, float * valor){
+void popValor(PilhaValor **P, float * valor)
+{
 	*valor = (*P) -> topo -> valor;
 	NoPilhaValor *noRemovido = (*P) -> topo;
 	(*P) -> topo = (*P) -> topo -> prox;
 	free(noRemovido);
 }
 
-void popOperador(PilhaOperador * * P, char *operador){
+void popOperador(PilhaOperador **P, char *operador)
+{
 	strcpy(operador, (*P) -> topo -> operador);
 	NoPilhaOperador *noRemovido = (*P) -> topo;
 	(*P) -> topo = (*P) -> topo -> prox;
@@ -769,26 +779,28 @@ void constroiLG(ListaGen **lista, Token *token)
 		exibeLG(*lista);
 }
 
-void initPOperador(PilhaOperador * * P){
+void initPOperador(PilhaOperador **P)
+{
 	*P = (PilhaOperador*)malloc(sizeof(PilhaOperador));
 	(*P) -> topo = NULL;
 }
 
-void initPValor(PilhaValor * * P){
+void initPValor(PilhaValor **P)
+{
 	*P = (PilhaValor*)malloc(sizeof(PilhaValor));
 	(*P) -> topo = NULL;
 }
 
-int prioridade(char *operador) {
-    if (strcmp(operador, "+") == 0 || strcmp(operador, "-") == 0) {
+int prioridade(char *operador) 
+{
+    if(strcmp(operador, "+") == 0 || strcmp(operador, "-") == 0) 
         return 1;
-    } 
-    else if (strcmp(operador, "*") == 0 || strcmp(operador, "/") == 0 || strcmp(operador, "%") == 0 || strcmp(operador, "//") == 0) {
+    else 
+	if(strcmp(operador, "*") == 0 || strcmp(operador, "/") == 0 || strcmp(operador, "%") == 0 || strcmp(operador, "//") == 0)
         return 2;
-    } 
-    else if (strcmp(operador, "**") == 0) {
+    else 
+	if(strcmp(operador, "**") == 0)
         return 3;
-    }
     return 0; // Para operadores não reconhecidos
 }
 
@@ -832,7 +844,8 @@ float Expoen(float nume, float Ex)
 	return res.f;
 }
 
-float calculaEquacao(ListaGen * caixa) {
+float calculaEquacao(ListaGen *caixa) 
+{
     PilhaOperador *POperador;
     PilhaValor *PValor;
     
@@ -903,6 +916,7 @@ float calculaEquacao(ListaGen * caixa) {
     popValor(&PValor, &resultado);
     return resultado;
 }
+
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
@@ -1272,14 +1286,42 @@ Programa *buscaFuncoes(Funcoes *funcoes, char *token)
 		return NULL;
 }
 
+//algoritmo que executa uma funcao
+//int executaFuncao(Funcoes *funcoes, Programa *programa, Token *token, Variavel *pv)
+//{
+//	int chave=0;
+//	Variavel *auxVariavel;
+//	
+//	
+//	if(token != NULL && strcmp(token->info,"{") == 0)
+//	{
+//		chave++;
+//		programa = program->prox;
+//	}
+//	
+//	if(chave > 0) //chave maior que 0 indica que ainda está na function
+//	{
+//		token = programa->token;
+//		if(strcmp(token->info,"{") == 0)
+//			chave++;
+//		else
+//		if(strcmp(token->info,"}") == 0)
+//			chave--;
+//		else
+//			executaPrograma(programa, &pv, funcoes);
+//							
+//		programa = programa->prox;
+//	}
+//}
+
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
 	Variavel auxVar;
 	//Variavel *pv;
 	//initPV(&pv);
-	Token *auxToken, *auxProcura, *linhaAux;
-	Programa *auxPrograma, *pontConLog, *auxLocalFun; //pontConLog = endereço de onde tem um console.log
+	Token *auxToken, *auxProcura, *linhaAux, *atualToken;
+	Programa *auxPrograma, *pontConLog, *auxLocalFun, *atualProgm; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
 	
 	//lista encadeada que vai guardar as informações dos console.log
@@ -1291,7 +1333,9 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	initLG(&listaCalcula);
 	
 	//Salvar o tipo de variavel quando declarada
-	char auxTipo[7], mensagemPronta[200]; 
+	char auxTipo[7], mensagemPronta[200];
+	
+	int chave=0, flagFun = 0; //contator de chaver para saber quando sair de uma função
 	
 	while(auxPrograma != NULL)
 	{
@@ -1325,18 +1369,18 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					//caso não seja função ou conta;
 				else
 				{
-						strcpy(auxVar.valor, auxToken->info);
-						auxToken = auxToken->prox;
-					}
+					strcpy(auxVar.valor, auxToken->info);
+					auxToken = auxToken->prox;
+				}
 					
-					auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+				auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
 						
-					if(strcmp(auxTipo,"let")==0)
-						auxVar.tipo = 0;
-					else //Entao e CONST
-						auxVar.tipo = 1;
+				if(strcmp(auxTipo,"let")==0)
+					auxVar.tipo = 0;
+				else //Entao e CONST
+					auxVar.tipo = 1;
 	
-					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+				pushPV(pv,auxVar); //Passar a pilha, e a variavel
 				//}
 			}
 		 	else
@@ -1357,20 +1401,45 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					getch();
 				}
 				pontConLog = NULL;	
-			}
-			else
-			if(auxLocalFun != NULL) //achou a funcao
+			} //não pode ter else aqui!!!
+			if(auxLocalFun != NULL || flagFun == 1) //achou a funcao
 			{
+				flagFun = 1;//indica que eu estou na função
+				//guardando a caixinha de programa e de token que teve a chamada da funcao
+				atualProgm = auxPrograma;
+				atualToken = auxToken;
+				
 				auxPrograma = auxLocalFun; // posicionando onde esta a function
 				//printf("\nLocal da function OLA: %p",auxPrograma); //PARA TESTE
+				auxPrograma = auxPrograma->prox; //esta na chave
 				auxToken = auxPrograma->token;
 				
-				//pula function
-				auxToken = auxToken->prox;
-				//pula o nome da function
-				auxToken = auxToken->prox;
+				if(auxToken != NULL && strcmp(auxToken->info,"{") == 0)
+				{
+					chave++;
+					auxPrograma = auxPrograma->prox;
+				}
+				
+				if(chave > 0) //chave maior que 0 indica que ainda está na function
+				{
+					auxToken = auxPrograma->token;
+					if(strcmp(auxToken->info,"{") == 0)
+						chave++;
+					else
+					if(strcmp(auxToken->info,"}") == 0)
+						chave--;
+										
+					//auxPrograma = auxPrograma->prox; //nao pode fazer isso
+				}
+				
+				if(chave == 0) //terminou a funcao entao volta para o chamado
+				{
+					flagFun=0;
+					auxPrograma = atualProgm;
+					auxToken
+					 = atualToken;
+				}
 			}
-			
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
@@ -1569,18 +1638,7 @@ char menu()
 
 //void posicionaCursor(Programa *p, int lin, int pos)
 
-//funcao que exibe o nome e o local das funcoes do programa
-void exibeFuncoes(Funcoes *funcoes)
-{
-	int cont = 1;
-	while(funcoes != NULL)
-	{
-		printf("\nFuncao %d: %s",cont,funcoes->function);
-		printf("\nLocal: %p\n",funcoes->local);
-		cont++;
-		funcoes = funcoes->prox;
-	}
-}
+
 
 //funcao que simula a execucao do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
