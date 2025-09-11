@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-let a = 10/5;
-const x = 10;
-let msg = 'helloworld';
-const array = ['oiteste', 2.0, 5, [10, 20]];a
-console.log("Fim do programa");
-=======
 function ola()
 {
     const num = 10;
@@ -27,4 +20,4 @@ function soma()
 console.log("ola guilherme fora da function");
 soma();
 ola();
->>>>>>> a27622944e67cbbea003e559b3280d485fc3c5ea
+
