@@ -736,7 +736,9 @@ void destroiLista(ListaGen **lista)
 
 void exibeLG(ListaGen *lista)
 {
-	if(lista != NULL)
+	if(lista == NULL)
+		printf("\n\nPonteiro engual a NULL");
+	else 
 	{
 		if(lista->terminal == 'V')
 			printf("%d",lista->no.valor);
@@ -746,7 +748,7 @@ void exibeLG(ListaGen *lista)
 			printf("(");
 		exibeLG(lista->cabeca);
 		exibeLG(lista->cauda);
-	}
+	}		
 }
 
 void constroiLG(ListaGen **lista, Token *token)
@@ -1535,6 +1537,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 //			}
 			auxToken = auxToken->prox;
 		}
+		destroiLista(&listaCalcula);
 		auxPrograma = auxPrograma->prox;
 	} 
 }
@@ -1835,6 +1838,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 			
 			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
 				//nao sei se estaria correto como estou passando
+				
+				//	destroiPilha(&pvAux); //Tem que RESETAR A PILHA TODA VEZ QUE CHAMAR A FUNÇÃO DNV
 				executaPrograma(atual, &pvAux, funcoes);
 				op = getch();
 //				limpaTela(1, 1, 90, 90);
