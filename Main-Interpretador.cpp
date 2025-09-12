@@ -55,6 +55,14 @@ struct TpFuncoes
 };
 typedef struct TpFuncoes Funcoes;
 
+struct TpRetornoFuncoes
+{
+	Programa *programa;
+	Token *token;
+	struct TpRetornoFuncoes *prox;
+};
+typedef struct TpRetornoFuncoes retornoFuncoes;
+
 //estrutura que vai controlar a manipulacao de bloco for no nosso programa
 struct TpControleFor
 {
@@ -257,6 +265,46 @@ void enqueueF(Funcoes **f, char *fun, int l, Programa *local)
 		while(aux->prox != NULL)
 			aux = aux->prox;
 		aux->prox = nova;
+	}
+}
+
+
+// -- TAD DA PILHA QUE GUARDA O RETORNO DAS FUNCOES
+
+//funcao que inicializa nossa pilha de rotorno das function
+void initRF(retornoFuncoes **rf)
+{
+	*rf = NULL;
+}
+
+//funcao que empilha o retorno das function
+void pushRF(retornoFuncoes **rf, Programa *programa, Token *token)
+{
+	retornoFuncoes *nova = (retornoFuncoes*)malloc(sizeof(retornoFuncoes));
+	nova->programa = programa;
+	nova->token = token;
+	nova->prox = *rf;
+	*rf = nova;
+}
+
+//funcao que verifica se a pilha de retorno de funcoes ta vazia
+char isEmptyRF(retornoFuncoes *rf)
+{
+	return rf == NULL;
+}
+
+//funcao que retira os enderecos da nossa pilha de retorno
+void popRF(retornoFuncoes **rf, Programa **programa, Token **token)
+{
+	if(!isEmptyRF(*rf))
+	{
+		retornoFuncoes *aux;
+		aux = *rf;
+		*programa = (*rf)->programa;
+		*token = (*rf)->token;
+		
+		*rf = (*rf)->prox;
+		free(aux);
 	}
 }
 
@@ -1329,8 +1377,8 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	Variavel auxVar, *auxPilha;
 	//Variavel *pv;
 	//initPV(&pv);
-	Token *auxToken, *auxProcura, *linhaAux, *atualToken;
-	Programa *auxPrograma, *pontConLog, *auxLocalFun, *atualProgm; //pontConLog = endereço de onde tem um console.log
+	Token *auxToken, *auxProcura, *linhaAux, *atualToken, *retToken;
+	Programa *auxPrograma, *pontConLog, *auxLocalFun, *atualProgm, *retProg; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
 	
 	//lista encadeada que vai guardar as informações dos console.log
@@ -1340,6 +1388,10 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	//Lista Generalizada para calcular expressões matemáticas
 	ListaGen *listaCalcula;
 	initLG(&listaCalcula);
+	
+	//pilha que guarda os retorno das function
+	retornoFuncoes *rf;
+	initRF(&rf);
 	
 	//Salvar o tipo de variavel quando declarada
 	char auxTipo[7], mensagemPronta[200];
@@ -1411,82 +1463,76 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				}
 				pontConLog = NULL;	
 			} //não pode ter else aqui!!!
-			if(auxLocalFun != NULL || flagFun == 1) //achou a funcao
+			else
+			if(auxLocalFun != NULL || !isEmptyRF(rf)) //CHAMADA DE FUNÇÃO (AJUSTADO)
 			{
-				flagFun = 1;//indica que eu estou na função
-				//guardando a caixinha de programa e de token que teve a chamada da funcao
-				atualProgm = auxPrograma;
-				atualToken = auxToken;
-				
-				auxPrograma = auxLocalFun; // posicionando onde esta a function
-				//printf("\nLocal da function OLA: %p",auxPrograma); //PARA TESTE
-				auxPrograma = auxPrograma->prox; //esta na chave
-				auxToken = auxPrograma->token;
-				
-				if(auxToken != NULL && strcmp(auxToken->info,"{") == 0)
+				// se encontrou chamada de função, empilha ponto de retorno
+				if(auxLocalFun != NULL) 
 				{
-					chave++;
-					auxPrograma = auxPrograma->prox;
-				}
-				
-				if(chave > 0) //chave maior que 0 indica que ainda está na function
-				{
+					pushRF(&rf, auxPrograma, auxToken);
+					auxPrograma = auxLocalFun; 
+					auxPrograma = auxPrograma->prox; // pula definição "function"
 					auxToken = auxPrograma->token;
-					if(strcmp(auxToken->info,"{") == 0)
-						chave++;
-					else
-					if(strcmp(auxToken->info,"}") == 0)
-						chave--;
-										
-					//auxPrograma = auxPrograma->prox; //nao pode fazer isso
+					chave = 0;
 				}
+
+				//estamos dentro de uma funcao que controla chaves
+				if(strcmp(auxToken->info,"{") == 0)
+					chave++;
+				else 
+				if(strcmp(auxToken->info,"}") == 0)
+					chave--;
 				
-				if(chave == 0) //terminou a funcao entao volta para o chamado
+
+				//terminou a função volta pro ponto salvo
+				if(chave == 0 && !isEmptyRF(rf)) 
 				{
-					flagFun=0;
-					auxPrograma = atualProgm;
-					auxToken
-					 = atualToken;
-				}
+				    popRF(&rf, &retProg, &retToken);
+				    auxPrograma = retProg;
+				    auxToken = retToken->prox;
+				} 
+				else
+				    auxToken = auxToken->prox;
 			}
-			else if(isVariavel(auxToken->info), *pv) //Busca na pilha para verificar se o token é uma variavel
-			{
-				auxPilha = buscaVariavel(auxToken->info, *pv);
-				
-				if(numeric(auxPilha->valor[0])) //Variavel é numero, "Int".
-				{
-						auxToken = auxToken->prox->prox; //Pula o '='
-						
-					//	if(procuraFuncao())// Procura função nos proximos tokens
-					//	{
-							
-					//	}
-					/*	else*/ if(procuraOperador(auxToken))//Procura operador matematico para ver se é expressão matematica
-						{
-							constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-							// Converte o float para string usando sprintf()
-		    				sprintf(auxPilha->valor, "%2.f", calculaEquacao(listaCalcula));
-						//	alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel
-						}
-						else if(numeric(auxToken->info[0]))//SE Não é função e nem expressão então é apenas uma mudança de valor
-						{
-							auxPilha->valor = atoi(auxToken);
-							//alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel //NAO SEI SE PRECISA
-						}
-						
-				}
-		//		else if(array(auxVariavel))
-		//		{
-		//			auxToken = auxToken->prox;
-		//			if(strcmp(auxToken->info,". ))
-		//		}
-		//		else //Se não é Int e nem Array, então é string
-		//		{
-		//			
-		//		}
-		//		auxToken = auxToken->prox;
-				
-			}
+			else
+//			if(isVariavel(auxToken->info), *pv) //Busca na pilha para verificar se o token é uma variavel
+//			{
+//				auxPilha = buscaVariavel(auxToken->info, *pv);
+//				
+//				if(numeric(auxPilha->valor[0])) //Variavel é numero, "Int".
+//				{
+//						auxToken = auxToken->prox->prox; //Pula o '='
+//						
+//					//	if(procuraFuncao())// Procura função nos proximos tokens
+//					//	{
+//							
+//					//	}
+//					/*	else*/ if(procuraOperador(auxToken))//Procura operador matematico para ver se é expressão matematica
+//						{
+//							constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+//							// Converte o float para string usando sprintf()
+//		    				sprintf(auxPilha->valor, "%2.f", calculaEquacao(listaCalcula));
+//						//	alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel
+//						}
+//						else if(numeric(auxToken->info[0]))//SE Não é função e nem expressão então é apenas uma mudança de valor
+//						{
+//							auxPilha->valor = atoi(auxToken);
+//							//alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel //NAO SEI SE PRECISA
+//						}
+//						
+//				}
+//		//		else if(array(auxVariavel))
+//		//		{
+//		//			auxToken = auxToken->prox;
+//		//			if(strcmp(auxToken->info,". ))
+//		//		}
+//		//		else //Se não é Int e nem Array, então é string
+//		//		{
+//		//			
+//		//		}
+//		//		auxToken = auxToken->prox;
+//				
+//			}
 			auxToken = auxToken->prox;
 		}
 		auxPrograma = auxPrograma->prox;
