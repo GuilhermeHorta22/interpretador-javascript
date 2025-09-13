@@ -55,10 +55,20 @@ struct TpFuncoes
 };
 typedef struct TpFuncoes Funcoes;
 
+//union que vai guardar o valor de retorno de uma funcao
+union valorRetorno
+{
+	char valorString[100];
+	float valorFloat;
+};
+
+//estrutura que vai guardar todas as informacoes da chamada da function
 struct TpRetornoFuncoes
 {
 	Programa *programa;
 	Token *token;
+	valorRetorno valorRet;
+	int tipoRetorno; // 0 - sem retorno | 1 - float | 2 - string
 	struct TpRetornoFuncoes *prox;
 };
 typedef struct TpRetornoFuncoes retornoFuncoes;
@@ -283,6 +293,7 @@ void pushRF(retornoFuncoes **rf, Programa *programa, Token *token)
 	retornoFuncoes *nova = (retornoFuncoes*)malloc(sizeof(retornoFuncoes));
 	nova->programa = programa;
 	nova->token = token;
+	nova->tipoRetorno = 0; //indica que não existe retorno
 	nova->prox = *rf;
 	*rf = nova;
 }
@@ -1345,34 +1356,6 @@ char isVariavel(char *aux, Variavel *P)
 	return 0;
 }
 
-//algoritmo que executa uma funcao
-//int executaFuncao(Funcoes *funcoes, Programa *programa, Token *token, Variavel *pv)
-//{
-//	int chave=0;
-//	Variavel *auxVariavel;
-//	
-//	
-//	if(token != NULL && strcmp(token->info,"{") == 0)
-//	{
-//		chave++;
-//		programa = program->prox;
-//	}
-//	
-//	if(chave > 0) //chave maior que 0 indica que ainda está na function
-//	{
-//		token = programa->token;
-//		if(strcmp(token->info,"{") == 0)
-//			chave++;
-//		else
-//		if(strcmp(token->info,"}") == 0)
-//			chave--;
-//		else
-//			executaPrograma(programa, &pv, funcoes);
-//							
-//		programa = programa->prox;
-//	}
-//}
-
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
@@ -1447,7 +1430,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				//}
 			}
 		 	else
-			if(auxToken->prox != NULL && linhaAux->prox && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
+			if(auxToken->prox != NULL && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
 				pontConLog = separaExpressoes(auxPrograma, &*pv, funcoes);
 				
@@ -1461,42 +1444,52 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					enqueueLE(&listaConLog, mensagemPronta);
 					
 					printf("\n\nMensagem console.log: %s",mensagemPronta);
-					getch();
+					//getch();
 				}
 				pontConLog = NULL;	
-			} //não pode ter else aqui!!!
-			else
-			if(auxLocalFun != NULL || !isEmptyRF(rf)) //CHAMADA DE FUNÇÃO (AJUSTADO)
-			{
-				// se encontrou chamada de função, empilha ponto de retorno
-				if(auxLocalFun != NULL) 
-				{
-					pushRF(&rf, auxPrograma, auxToken);
-					auxPrograma = auxLocalFun; 
-					auxPrograma = auxPrograma->prox; // pula definição "function"
-					auxToken = auxPrograma->token;
-					chave = 0;
-				}
-
-				//estamos dentro de uma funcao que controla chaves
-				if(strcmp(auxToken->info,"{") == 0)
-					chave++;
-				else 
-				if(strcmp(auxToken->info,"}") == 0)
-					chave--;
-				
-
-				//terminou a função volta pro ponto salvo
-				if(chave == 0 && !isEmptyRF(rf)) 
-				{
-				    popRF(&rf, &retProg, &retToken);
-				    auxPrograma = retProg;
-				    auxToken = retToken->prox;
-				} 
-				else
-				    auxToken = auxToken->prox;
 			}
-			else
+			else 
+			if(auxLocalFun != NULL || !isEmptyRF(rf)) //retToken e retProg
+            {
+                if(auxLocalFun != NULL)
+                {
+                    pushRF(&rf, auxPrograma, auxToken);
+                    auxPrograma = auxLocalFun->prox;
+                    auxToken = auxPrograma->token;
+                    chave = 0;
+                    auxLocalFun = NULL;
+                }
+                
+                if(strcmp(auxToken->info,"{") == 0) 
+					chave++;
+                else 
+				if(strcmp(auxToken->info,"}") == 0) 
+					chave--;
+
+                if(chave == 0 && !isEmptyRF(rf))
+                {
+                    popRF(&rf, &retProg, &retToken);
+                    auxPrograma = retProg;
+                    auxToken = retToken->prox;
+                }
+            }
+            // --- Return ---
+            else 
+			if(strcmp(auxToken->info,"return") == 0)
+            {
+                auxToken = auxToken->prox;
+                if(numeric(auxToken->info) == 1)
+                {
+                    rf->tipoRetorno = 1; // float
+                    rf->valorRet.valorFloat = atof(auxToken->info);
+                }
+                else
+                {
+                    rf->tipoRetorno = 2; // string
+                    strcpy(rf->valorRet.valorString, auxToken->info);
+                }
+            }
+//			else
 //			if(isVariavel(auxToken->info), *pv) //Busca na pilha para verificar se o token é uma variavel
 //			{
 //				auxPilha = buscaVariavel(auxToken->info, *pv);
@@ -1537,7 +1530,8 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 //			}
 			auxToken = auxToken->prox;
 		}
-		destroiLista(&listaCalcula);
+		if(listaCalcula != NULL)
+			destroiLista(&listaCalcula);
 		auxPrograma = auxPrograma->prox;
 	} 
 }
@@ -1791,7 +1785,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				//ExibirPrograma(auxP); //PARA TESTE
 				op = getch();
 				//printf("\nLocal da function OLA: %p",auxP); //PARA TESTE
-				getch();
+				//getch();
 
 				chave = 1;
 				while(auxP != NULL && chave > 0)
@@ -1830,7 +1824,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 							chave = 1;
 					}
 				}
-				atual = auxP;
+				atual = auxP; // volta pro início se não achou nada
+
 				
 				//exibeFuncoes(funcoes); //PARA TESTE
 
