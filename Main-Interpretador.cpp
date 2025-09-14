@@ -1356,10 +1356,23 @@ char isVariavel(char *aux, Variavel *P)
 	return 0;
 }
 
+ Variavel* buscaVariavel(char *aux, Variavel *P)
+{
+	printf("\n\nEntrou na buscaVariavel");
+	
+	Variavel *andar = P;
+	while(andar != NULL && strcmp(aux,andar->identificador)!=0)
+	{
+		printf("\n\nEntrou no While");
+		andar = andar->prox;
+	}
+	return andar;
+}
+
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
 void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
-	Variavel auxVar, *auxPilha;
+	Variavel auxVar, *auxPilha=NULL;
 	//Variavel *pv;
 	//initPV(&pv);
 	Token *auxToken, *auxProcura, *linhaAux, *atualToken, *retToken;
@@ -1489,45 +1502,45 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
                     strcpy(rf->valorRet.valorString, auxToken->info);
                 }
             }
-//			else
-//			if(isVariavel(auxToken->info), *pv) //Busca na pilha para verificar se o token é uma variavel
-//			{
-//				auxPilha = buscaVariavel(auxToken->info, *pv);
-//				
-//				if(numeric(auxPilha->valor[0])) //Variavel é numero, "Int".
-//				{
-//						auxToken = auxToken->prox->prox; //Pula o '='
-//						
-//					//	if(procuraFuncao())// Procura função nos proximos tokens
-//					//	{
-//							
-//					//	}
-//					/*	else*/ if(procuraOperador(auxToken))//Procura operador matematico para ver se é expressão matematica
-//						{
-//							constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-//							// Converte o float para string usando sprintf()
-//		    				sprintf(auxPilha->valor, "%2.f", calculaEquacao(listaCalcula));
-//						//	alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel
-//						}
-//						else if(numeric(auxToken->info[0]))//SE Não é função e nem expressão então é apenas uma mudança de valor
-//						{
-//							auxPilha->valor = atoi(auxToken);
-//							//alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel //NAO SEI SE PRECISA
-//						}
-//						
-//				}
-//		//		else if(array(auxVariavel))
-//		//		{
-//		//			auxToken = auxToken->prox;
-//		//			if(strcmp(auxToken->info,". ))
-//		//		}
-//		//		else //Se não é Int e nem Array, então é string
-//		//		{
-//		//			
-//		//		}
-//		//		auxToken = auxToken->prox;
-//				
-//			}
+			else
+			if(isVariavel(auxToken->info, *pv)) //Busca na pilha para verificar se o token é uma variavel
+			{
+				auxPilha = buscaVariavel(auxToken->info,*pv);
+				if(numeric(auxPilha->valor)) //Variavel é numero, "Int".
+				{
+					printf("\n\nEntrou no numeric");
+						auxToken = auxToken->prox->prox; //Pula o '='
+						
+					//	if(procuraFuncao())// Procura função nos proximos tokens
+					//	{
+							
+					//	}
+					/*	else*/ if(procuraOperador(auxToken))//Procura operador matematico para ver se é expressão matematica
+						{
+							constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+							// Converte o float para string usando sprintf()
+		    				sprintf(auxPilha->valor, "%2.f", calculaEquacao(listaCalcula));
+						//	alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel
+						}
+						else if(numeric(auxToken->info))//SE Não é função e nem expressão então é apenas uma mudança de valor
+						{
+							strcpy(auxPilha->valor, auxToken->info);
+							//alteraValor(auxVariavel, *pv); //Atribuir novo valor a variavel //NAO SEI SE PRECISA
+						}
+						
+				}
+		//		else if(array(auxVariavel))
+		//		{
+		//			auxToken = auxToken->prox;
+		//			if(strcmp(auxToken->info,". ))
+		//		}
+		//		else //Se não é Int e nem Array, então é string
+		//		{
+		//			
+		//		}
+		//		auxToken = auxToken->prox;
+				
+			}
 			auxToken = auxToken->prox;
 		}
 		if(listaCalcula != NULL)
