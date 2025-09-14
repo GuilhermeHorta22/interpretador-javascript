@@ -107,6 +107,45 @@ struct TpListaGen
 };
 typedef struct TpListaGen ListaGen;
 
+struct TpChaves
+{
+	int cont;
+	struct TpChaves *prox;
+};
+typedef struct TpChaves Chaves;
+
+
+// -- TAD CHAVES -- 
+void initChaves(Chaves **chaves)
+{
+	*chaves = NULL;
+}
+
+char isEmptyChaves(Chaves *chaves)
+{
+	return chaves == NULL;
+}
+
+void pushChaves(Chaves **chaves, int cont)
+{
+	Chaves *novo = (Chaves*)malloc(sizeof(Chaves));
+	novo->cont = cont;
+	novo->prox = *chaves;
+	*chaves = novo;
+}
+
+void popChaves(Chaves **chaves, int *cont)
+{
+	Chaves *aux;
+	if(!isEmptyChaves(*chaves))
+	{
+		aux = *chaves;
+		*cont = aux->cont;
+		*chaves = aux->prox;
+		free(aux);
+	}
+}
+
 // -- TAD LISTA GEN ---
 
 void initLG(ListaGen **lista)
@@ -1391,8 +1430,12 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	retornoFuncoes *rf;
 	initRF(&rf);
 	
+	//pilha que guarda o contador de chaves para cada estrutura
+	Chaves *chaves;
+	initChaves(&chaves);
+	
 	//Salvar o tipo de variavel quando declarada
-	char auxTipo[7], mensagemPronta[200];
+	char auxTipo[7], mensagemPronta[200], ident[TF], valor[TF];
 	
 	int chave=0, flagFun = 0; //contator de chaver para saber quando sair de uma função
 	
@@ -1462,7 +1505,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				pontConLog = NULL;	
 			}
 			else 
-			if(auxLocalFun != NULL || !isEmptyRF(rf)) //retToken e retProg
+			if(auxLocalFun != NULL || !isEmptyRF(rf)) // function - retToken e retProg
             {
                 if(auxLocalFun != NULL)
                 {
@@ -1470,37 +1513,54 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
                     auxPrograma = auxLocalFun->prox;
                     auxToken = auxPrograma->token;
                     chave = 0;
+                    pushChaves(&chaves,chave);
                     auxLocalFun = NULL;
                 }
                 
                 if(strcmp(auxToken->info,"{") == 0) 
-					chave++;
+					chaves->cont++;
                 else 
 				if(strcmp(auxToken->info,"}") == 0) 
-					chave--;
+					chaves->cont--;
 
-                if(chave == 0 && !isEmptyRF(rf))
+                if(chaves->cont == 0)
                 {
                     popRF(&rf, &retProg, &retToken);
+                    popChaves(&chaves,&chave);
                     auxPrograma = retProg;
                     auxToken = retToken->prox;
                 }
             }
-            // --- Return ---
             else 
-			if(strcmp(auxToken->info,"return") == 0)
+			if(strcmp(auxToken->info,"return") == 0)//return
             {
-                auxToken = auxToken->prox;
-                if(numeric(auxToken->info) == 1)
-                {
-                    rf->tipoRetorno = 1; // float
-                    rf->valorRet.valorFloat = atof(auxToken->info);
-                }
-                else
-                {
-                    rf->tipoRetorno = 2; // string
-                    strcpy(rf->valorRet.valorString, auxToken->info);
-                }
+                auxToken = auxToken->prox; //pulando "return"
+                //tenho que saber qual o tipo da variavel que eu vou retorna - OK
+                //eu tenho dar pop na pilha de function ja que o return encerra uma function - OK
+                //tenho que retirar a chave do cont de chave - OK
+                //tenho que voltar os ponteiros principais do programa para o local de chamado - OK
+                //tenho que atribuir o valor na variavel que chamou a function - OK
+                
+				//informacoes da variavel que esta sendo retornada na function
+                auxPilha = buscaVariavel(auxToken->info,*pv);
+                strcpy(ident, auxPilha->identificador);
+                strcpy(valor, auxPilha->valor);
+                
+                //retirando a chamada de function da pilha e voltando para onde chamou
+				popRF(&rf,&retProg,&retToken);
+				popChaves(&chaves,&chave);
+				auxPrograma = retProg;
+                auxToken = auxPrograma->token;
+                
+                
+                //pulando a declaracao da variavel ja que pode ser const num = soma();
+                if(strcmp(auxToken->info,"const") == 0 || strcmp(auxToken->info,"let") == 0)
+                	auxToken = auxToken->prox;
+                
+				//buscando a variavel na pilha
+				auxPilha = buscaVariavel(auxToken->info,*pv); 
+                if(auxPilha != NULL) //achei a variavel
+					strcpy(auxPilha->valor, valor);
             }
 			else
 			if(isVariavel(auxToken->info, *pv)) //Busca na pilha para verificar se o token é uma variavel

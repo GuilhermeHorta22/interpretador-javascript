@@ -1,7 +1,7 @@
-function ola()
+function valor()
 {
-    console.log("dentra da function OLA");
+    const num=10;
+    return num;
 }
-console.log("ola guilherme fora da function");
-ola();
-console.log("depois da function");
+const numero=valor();
+console.log("Numero = ",numero);
