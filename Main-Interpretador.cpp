@@ -1018,6 +1018,20 @@ float calculaEquacao(ListaGen *caixa)
 }
 
 
+
+ Variavel* buscaVariavel(char *aux, Variavel *P)
+{
+	printf("\n\nEntrou na buscaVariavel");
+	
+	Variavel *andar = P;
+	while(andar != NULL && strcmp(aux,andar->identificador)!=0)
+	{
+		printf("\n\nEntrou no While");
+		andar = andar->prox;
+	}
+	return andar;
+}
+
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
 //funcao que verifica se e uma string
@@ -1349,12 +1363,11 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
                         }
                         else //variavel ou expressao
                         {
-                            strcpy(nomeVar, atual->info);
-                            pvAux = buscarIdentPV(pv, nomeVar);
+                            pvAux = buscaVariavel(atual->info, pv);
                             if(pvAux != NULL)
                                 strcat(mensagemPronta, pvAux->valor);
                             else
-                                strcat(mensagemPronta, nomeVar);
+                                strcat(mensagemPronta, atual->info);
                         }
                         atual = atual->prox;
                     }
@@ -1393,19 +1406,6 @@ char isVariavel(char *aux, Variavel *P)
 	if(P != NULL)
 		return 1;
 	return 0;
-}
-
- Variavel* buscaVariavel(char *aux, Variavel *P)
-{
-	printf("\n\nEntrou na buscaVariavel");
-	
-	Variavel *andar = P;
-	while(andar != NULL && strcmp(aux,andar->identificador)!=0)
-	{
-		printf("\n\nEntrou no While");
-		andar = andar->prox;
-	}
-	return andar;
 }
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
@@ -1545,6 +1545,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
                 auxPilha = buscaVariavel(auxToken->info,*pv);
                 strcpy(ident, auxPilha->identificador);
                 strcpy(valor, auxPilha->valor);
+                printf("\nVALOR RETORNADO DA FUNCTION: %s",valor);
                 
                 //retirando a chamada de function da pilha e voltando para onde chamou
 				popRF(&rf,&retProg,&retToken);
@@ -1561,6 +1562,9 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				auxPilha = buscaVariavel(auxToken->info,*pv); 
                 if(auxPilha != NULL) //achei a variavel
 					strcpy(auxPilha->valor, valor);
+					
+				printf("\nValor existente na varivel %s = %s",auxPilha->identificador,auxPilha->valor);
+				getch();
             }
 			else
 			if(isVariavel(auxToken->info, *pv)) //Busca na pilha para verificar se o token é uma variavel
