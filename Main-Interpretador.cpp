@@ -1021,12 +1021,12 @@ float calculaEquacao(ListaGen *caixa)
 
  Variavel* buscaVariavel(char *aux, Variavel *P)
 {
-	printf("\n\nEntrou na buscaVariavel");
+	//printf("\n\nEntrou na buscaVariavel");
 	
 	Variavel *andar = P;
 	while(andar != NULL && strcmp(aux,andar->identificador)!=0)
 	{
-		printf("\n\nEntrou no While");
+		//printf("\n\nEntrou no While");
 		andar = andar->prox;
 	}
 	return andar;
@@ -1436,6 +1436,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	
 	//Salvar o tipo de variavel quando declarada
 	char auxTipo[7], mensagemPronta[200], ident[TF], valor[TF];
+	char nomeVarFun[30];
 	
 	int chave=0, flagFun = 0; //contator de chaver para saber quando sair de uma função
 	
@@ -1454,36 +1455,44 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
 				auxToken = auxToken->prox;
 				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
-				auxToken = auxToken->prox->prox; //Pula o "=" pq SEMPRE será '=' apos nome de variavel
-				auxProcura = auxToken;
-					
-				//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
-				if(procuraOperador(auxProcura))
-				{	
-					constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-					// Converte o float para string usando sprintf()
-    				sprintf(auxVar.valor, "%2.f", calculaEquacao(listaCalcula));
-				}
-				//else if(procuraFuncao(auxProcura))
-				//{
-						
-					//}
-					//caso não seja função ou conta;
-				else
-				{
-					strcpy(auxVar.valor, auxToken->info);
-					auxToken = auxToken->prox;
-				}
-					
+				strcpy(nomeVarFun, auxToken->info); //guardando o nome da variavel
+				auxToken = auxToken->prox; //esta apontando para o =
+				
 				auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
-						
+							
 				if(strcmp(auxTipo,"let")==0)
 					auxVar.tipo = 0;
 				else //Entao e CONST
 					auxVar.tipo = 1;
-	
-				pushPV(pv,auxVar); //Passar a pilha, e a variavel
-				//}
+
+				auxLocalFun = buscaFuncoes(funcoes, auxToken->prox->info);
+				if(auxLocalFun == NULL) //nao achei um function
+				{
+					auxToken = auxToken->prox;
+					auxProcura = auxToken;
+					//se tiver um operador(+ - * /) apartir do '=' significa que é uma EXPRESSÃO/CONTA.
+					if(procuraOperador(auxProcura))
+					{	
+						constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
+						// Converte o float para string usando sprintf()
+	    				sprintf(auxVar.valor, "%2.f", calculaEquacao(listaCalcula));
+					}
+					else
+					{
+						strcpy(auxVar.valor, auxToken->info);
+						auxToken = auxToken->prox;
+					}
+
+					//estou empilhando tudo menos o valor, o valor vai ser adicionado depois
+					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+				}
+				else
+				{
+					//passando um valor vazio por enquanto
+					strcpy(auxVar.valor, "");
+					//estou empilhando tudo menos o valor, o valor vai ser adicionado depois
+					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+				}
 			}
 		 	else
 			if(auxToken->prox != NULL && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
@@ -1505,6 +1514,49 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				pontConLog = NULL;	
 			}
 			else 
+			if(strcmp(auxToken->info,"return") == 0)//return
+            {
+                auxToken = auxToken->prox; //pulando "return"
+                //tenho que saber qual o tipo da variavel que eu vou retorna - OK
+                //eu tenho dar pop na pilha de function ja que o return encerra uma function - OK
+                //tenho que retirar a chave do cont de chave - OK
+                //tenho que voltar os ponteiros principais do programa para o local de chamado - OK
+                //tenho que atribuir o valor na variavel que chamou a function - OK
+                
+				//informacoes da variavel que esta sendo retornada na function
+                auxPilha = buscaVariavel(auxToken->info,*pv);
+                strcpy(ident, auxPilha->identificador);
+                strcpy(valor, auxPilha->valor);
+                //printf("\nVALOR RETORNADO DA FUNCTION: %s",valor);
+                
+                //retirando a chamada de function da pilha e voltando para onde chamou
+				popRF(&rf,&retProg,&retToken);
+				popChaves(&chaves,&chave);
+				auxPrograma = retProg;
+                auxToken = auxPrograma->token;
+                
+                
+                //pulando a declaracao da variavel ja que pode ser const num = soma();
+                if(strcmp(auxToken->info,"const") == 0 || strcmp(auxToken->info,"let") == 0)
+                	auxToken = auxToken->prox;
+                
+                //printf("\n\n NOME DA MINHA VARIAVEL - nomeVarFun: %s",nomeVarFun);
+                //printf("\n NOME DA MINHA VARIAVEL - auxToken->info: %s",auxToken->info);
+                //getch();
+				//buscando a variavel na pilha
+				auxPilha = buscaVariavel(auxToken->info,*pv); 
+                if(auxPilha != NULL) //achei a variavel
+					strcpy(auxPilha->valor, valor);
+					
+				printf("\nValor existente na varivel %s = %s",auxPilha->identificador,auxPilha->valor);
+				getch();
+				
+				//saindo da chamada da function
+				while(strcmp(auxToken->info,")") != 0)
+					auxToken = auxToken->prox;
+					
+            }
+            else
 			if(auxLocalFun != NULL || !isEmptyRF(rf)) // function - retToken e retProg
             {
                 if(auxLocalFun != NULL)
@@ -1530,41 +1582,6 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
                     auxPrograma = retProg;
                     auxToken = retToken->prox;
                 }
-            }
-            else 
-			if(strcmp(auxToken->info,"return") == 0)//return
-            {
-                auxToken = auxToken->prox; //pulando "return"
-                //tenho que saber qual o tipo da variavel que eu vou retorna - OK
-                //eu tenho dar pop na pilha de function ja que o return encerra uma function - OK
-                //tenho que retirar a chave do cont de chave - OK
-                //tenho que voltar os ponteiros principais do programa para o local de chamado - OK
-                //tenho que atribuir o valor na variavel que chamou a function - OK
-                
-				//informacoes da variavel que esta sendo retornada na function
-                auxPilha = buscaVariavel(auxToken->info,*pv);
-                strcpy(ident, auxPilha->identificador);
-                strcpy(valor, auxPilha->valor);
-                printf("\nVALOR RETORNADO DA FUNCTION: %s",valor);
-                
-                //retirando a chamada de function da pilha e voltando para onde chamou
-				popRF(&rf,&retProg,&retToken);
-				popChaves(&chaves,&chave);
-				auxPrograma = retProg;
-                auxToken = auxPrograma->token;
-                
-                
-                //pulando a declaracao da variavel ja que pode ser const num = soma();
-                if(strcmp(auxToken->info,"const") == 0 || strcmp(auxToken->info,"let") == 0)
-                	auxToken = auxToken->prox;
-                
-				//buscando a variavel na pilha
-				auxPilha = buscaVariavel(auxToken->info,*pv); 
-                if(auxPilha != NULL) //achei a variavel
-					strcpy(auxPilha->valor, valor);
-					
-				printf("\nValor existente na varivel %s = %s",auxPilha->identificador,auxPilha->valor);
-				getch();
             }
 			else
 			if(isVariavel(auxToken->info, *pv)) //Busca na pilha para verificar se o token é uma variavel

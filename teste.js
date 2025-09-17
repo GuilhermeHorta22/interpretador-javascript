@@ -1,7 +1,2 @@
-function valor()
-{
-    const num=10;
-    return num;
-}
-const numero=valor();
+const numero=10+5;
 console.log("Numero = ",numero);
