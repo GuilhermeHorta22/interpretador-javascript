@@ -601,7 +601,7 @@ int operadoresComposto(char caracter, char caracter2)
 }
 
 //funcao que verifica a existencia de um identificador (utilizado na hora de tokenzirar)
-int identificador(char caracter)
+int identificadorCarac(char caracter)
 {
 	if(caracter != ' ' && caracter != '\t' && caracter != '\n' &&
 		caracter != '(' && caracter != ')' && caracter != '+' &&
@@ -1409,21 +1409,172 @@ char isVariavel(char *aux, Variavel *P)
 	return 0;
 }
 
-//funcao que controla a condicao de um bloco if
-char controleCondicao(TpToken *atual, varPilha *pv)
+//funcao que grava um valor float ou string na union
+int gravarUnion(valorRetorno *valor, char *num)
 {
-    INFO esq, dir;  
-    char bol = 0, op[3];  
-    char tipoEsq, tipoDir;  
-    TpToken *linha = atual;  
-    int negacao = 0;  
-    int logico = 0;  
-    TpFilaFB *F;  
-    initFB(&F);
+    if(numeric(num) == 1) //1 float
+    {
+        valor->valorFloat = atof(num);
+        return 1; //indica float
+    }
+    else //0 string
+    {
+        strcpy(valor->valorString, num);
+        return 0; //indica string
+    }		
+}
+
+//funcao que controla a condicao de um bloco if
+int controleCondicao(TpToken *atual, Variavel *pv)
+{
+	//vai guardar as duas condições que vamos comparar no if
+    char vEsq[30], vDir[30];  
+    valorRetorno valorEsq, valorDir;
+	int tipoEsq, tipoDir;//vai guardar o tipo da variavel. 1-float | 0-string
+    char op[3];
+    TpToken *linha = atual; 
+    int negacao = 0; //vai indicar se a condicao e !num -> seria a negacao de num  
+    int se = 0; //vai ser usado para retorna 1 se a condicao for verdadeira e 0 falsa
     
-    
-    
-    
+    Variavel *variavel;
+	
+	linha = linha->prox; //pulando o if
+	linha = linha->prox; //pulando (
+	//linha = linha->prox; //estou na primeira condicao
+	
+	//verificando se temos uma negacao
+	if(linha != NULL && strcmp(linha->info,"!") == 0)
+	{
+		negacao = 1; 
+		linha = linha->prox; //pulando o suposto !
+	}
+	
+	variavel = buscarIdentPV(pv, linha->info);
+	if(variavel != NULL) //achei a variavel na pilha
+		strcpy(vEsq, variavel->valor);//guardando o primeiro valor para comparacao
+	else
+		strcpy(vEsq, linha->info);
+	linha = linha->prox; //pulando o primeiro valor e chegando na primeira condicao
+	
+	strcpy(op, linha->info); //copiando o operador porque jaja vamos usar
+	linha = linha->prox; //estou no segundo valor
+	
+	variavel = buscarIdentPV(pv, linha->info);
+	if(variavel != NULL)
+		strcpy(vDir, variavel->valor);
+	else
+		strcpy(vDir, linha->info);
+	linha = linha->prox; //estamos no )
+	
+	tipoEsq = gravarUnion(&valorEsq,vEsq); //gravando na union o tipo da esquerda
+	tipoDir = gravarUnion(&valorDir,vDir); //gravando na union o tipo da direita
+	
+	if(tipoEsq == tipoDir)
+	{
+		if(tipoEsq == 1) //vamos comparar normal
+		{
+			if(strcmp(op, ">") == 0)
+			{
+				if(valorEsq.valorFloat > valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "<") == 0)
+			{
+				if(valorEsq.valorFloat < valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, ">=") == 0)
+			{
+				if(valorEsq.valorFloat >= valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "<=") == 0)
+			{
+				if(valorEsq.valorFloat <= valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "==") == 0)
+			{
+				if(valorEsq.valorFloat == valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;	
+			}
+			else
+			if(strcmp(op, "!=") == 0)
+			{
+				if(valorEsq.valorFloat != valorDir.valorFloat)
+					se = 1;
+				else
+					se = 0;
+			}
+		}
+		else //vamos comparar com strcmp
+		{
+			if(strcmp(op, ">") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) > 0)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "<") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) < 0)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, ">=") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) >= 0)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "<=") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) <= 0)
+					se = 1;
+				else
+					se = 0;
+			}
+			else
+			if(strcmp(op, "==") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) == 0)
+					se = 1;
+				else
+					se = 0;	
+			}
+			else
+			if(strcmp(op, "!=") == 0)
+			{
+				if(strcmp(valorEsq.valorString, valorDir.valorString) != 0)
+					se = 1;
+				else
+					se = 0;
+			}	
+		}
+		return se;
+	}
+	else
+		return -1; //nao podemos comparar uma string com um float
 }
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
@@ -1527,7 +1678,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 		 		//(var > 5)
 		 		//retorna 1 se a condicao for verdadeira
 		 		//retorna 0 se a condicao for falsa
-		 		atualToken = auxToken;
+		 		atualToken = auxToken; //to no if
 		 		condicao = controleCondicao(atualToken,pv);
 		 		
 		 		if(condicao == 1)
@@ -1756,7 +1907,7 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 				else
 				{
 	                //le identificadores, numeros, etc.
-	                while(identificador(linha[i]) == 1) 
+	                while(identificadorCarac(linha[i]) == 1) 
 	                    token[j++] = linha[i++];
 	                if(j > 0)
 					{
