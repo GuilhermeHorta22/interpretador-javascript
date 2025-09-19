@@ -1399,6 +1399,7 @@ Programa *buscaFuncoes(Funcoes *funcoes, char *token)
 		return NULL;
 }
 
+//verifica se oque foi passado e uma variavel do programa
 char isVariavel(char *aux, Variavel *P)
 {
 	while(P != NULL && strcmp(aux,P->identificador)!=0)
@@ -1406,6 +1407,23 @@ char isVariavel(char *aux, Variavel *P)
 	if(P != NULL)
 		return 1;
 	return 0;
+}
+
+//funcao que controla a condicao de um bloco if
+char controleCondicao(TpToken *atual, varPilha *pv)
+{
+    INFO esq, dir;  
+    char bol = 0, op[3];  
+    char tipoEsq, tipoDir;  
+    TpToken *linha = atual;  
+    int negacao = 0;  
+    int logico = 0;  
+    TpFilaFB *F;  
+    initFB(&F);
+    
+    
+    
+    
 }
 
 //CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
@@ -1495,6 +1513,36 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				}
 			}
 		 	else
+		 	if(strcmp(auxToken->info,"if") == 0)
+		 	{
+		 		//vou ter que tratar se a condicao é verdadeira
+		 		// se for verdadeira a funcao de controle vai retornar 1 se nao retorna 0
+		 		//se retornar 1 entra no if de verdadeiro e executa
+		 		//se for falso vai para o else se ele existir
+		 		//mas antes de executar o else tem que ver se o não tem um if abaixo
+		 			//auxToken = auxPrograma->prox->token (vou precisar de um aux)
+		 		//se caso nao houver outro if de condicao apenas tratar como else
+		 		
+		 		//tenho que passar o token e a pilha de variavel, porque a condição pode ser
+		 		//(var > 5)
+		 		//retorna 1 se a condicao for verdadeira
+		 		//retorna 0 se a condicao for falsa
+		 		atualToken = auxToken;
+		 		condicao = controleCondicao(atualToken,pv);
+		 		
+		 		if(condicao == 1)
+		 		{
+		 			//posiciona o atualToken para o bloco do if
+				}
+				else
+				{
+					//posiciona o atualToken para o bloco do else
+				}
+				//tenho que fazer o auxToken pular os bloco que nao foi executado
+				//se executou o if eu tenho que pular o bloco do else para assim continuar
+				//a execucao normal do programa
+			}
+			else
 			if(auxToken->prox != NULL && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
 			{
 				pontConLog = separaExpressoes(auxPrograma, &*pv, funcoes);
