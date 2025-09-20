@@ -1,9 +1,11 @@
-if(10 > 20)
+let num = 10;
+let num2 = 10;
+if(num != num2)
 {
-    console.log("DENTRO DO IF");
+    console.log("NUMERO IGUAIS");
 }
 else
 {
-    console.log("DENTRO DO ELSE");
+    console.log("NUMEROS DIFERENTE");
 }
-console.log("DEPOIS DO ELSE");
+console.log("ULTIMO CONSOLE.LOG");

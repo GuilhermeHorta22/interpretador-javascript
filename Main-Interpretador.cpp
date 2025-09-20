@@ -1432,7 +1432,7 @@ int controleCondicao(TpToken *atual, Variavel *pv)
     valorRetorno valorEsq, valorDir;
 	int tipoEsq, tipoDir;//vai guardar o tipo da variavel. 1-float | 0-string
     char op[3];
-    TpToken *linha = atual; 
+    TpToken *linha = atual;
     int negacao = 0; //vai indicar se a condicao e !num -> seria a negacao de num  
     int se = 0; //vai ser usado para retorna 1 se a condicao for verdadeira e 0 falsa
     
@@ -1666,53 +1666,51 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 			}
 		 	else
 		 	if(strcmp(auxToken->info,"if") == 0)
-		 	{
-		 		//retorna 1 - verdadeira || 0 - falsa
-		 		condicao = controleCondicao(auxToken,*pv); //auxToken == if
-		 		
-		 		if(condicao == 1) //condicao verdadeira
-		 		{
-		 			// flag para saber que executou o if por tanto não vai fazer o else
-		 			flagIF = 1;
-		 			auxPrograma = auxPrograma->prox; //pulei a condicao do if
-		 			auxPrograma = auxPrograma->prox; //pulei a chave
-		 			auxToken = auxPrograma->token;
-				}
-				else
-				{
-					while(auxToken != NULL && strcmp(auxToken->info,"}") != 0)
-					{
-						auxPrograma = auxPrograma->prox;
-						auxToken = auxPrograma->token;
-					}
-					auxPrograma = auxPrograma->prox;
-					auxToken = auxPrograma->token; //estamos no suposto else!
-					
-					if(strcmp(auxToken->info, "else") == 0)
-					{
-						auxPrograma = auxPrograma->prox;
-						if(strcmp(auxPrograma->token->info, "{") == 0)
-							auxPrograma = auxPrograma->prox;
-						auxToken = auxPrograma->token;
-					}
-				}
+			{
+			    //retorna 1 - verdadeira || 0 - falsa
+			    condicao = controleCondicao(auxToken,*pv); //auxToken == if
+			
+			    if(condicao == 1) //condicao verdadeira
+			    {
+			        // flag para saber que executou o if por tanto não vai fazer o else
+			        flagIF = 1;
+			
+			        auxPrograma = auxPrograma->prox; //pulei a condicao do if
+			        auxToken = auxPrograma->token;
+			    }
+			    else
+			    {
+			        while(auxToken != NULL && strcmp(auxToken->info,"}") != 0)
+			        {
+			            auxPrograma = auxPrograma->prox;
+			            auxToken = auxPrograma->token;
+			        }
+			
+			        auxPrograma = auxPrograma->prox;
+			        auxToken = auxPrograma->token; //estamos no suposto else!
+			         
+			        if(strcmp(auxToken->info, "else") == 0)
+			        {
+			            auxPrograma = auxPrograma->prox;
+			            auxToken = auxPrograma->token;
+			        }
+			        else
+			        	auxPrograma = auxPrograma->ant;
+			    }
 			}
-			else //flagIF == 1 indica que executou o if anterior do else
+			else // flagIF == 1 indica que executou o if anterior e precisa pular o else
 			if(strcmp(auxToken->info, "else") == 0 && flagIF == 1)
 			{
-				auxPrograma = auxPrograma->prox;
-				if(strcmp(auxPrograma->token->info, "if") != 0)
-				{
-					while(auxPrograma != NULL && strcmp(auxPrograma->token->info, "}") != 0)
-						auxPrograma = auxPrograma->prox; 
-				}
-				auxToken = auxPrograma->token;
-				flagIF = 0;
-			}
-			else
-			if(strcmp(auxToken->info, "}") == 0 && flagIF == 1)
-			{
-				flagIF = 0;
+			    // pular o bloco do else inteiro
+			    auxPrograma = auxPrograma->prox;
+			    if(strcmp(auxPrograma->token->info, "if") != 0)
+			    {
+			        while(auxPrograma != NULL && strcmp(auxPrograma->token->info, "}") != 0)
+			            auxPrograma = auxPrograma->prox; 
+			    }
+			    auxToken = auxPrograma->token;
+			
+			    flagIF = 0;
 			}
 			else
 			if(auxToken->prox != NULL && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
