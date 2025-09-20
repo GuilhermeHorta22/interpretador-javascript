@@ -1,5 +1,9 @@
-let num = 10;
-if(num > 5)
-    console.log("Numero "+num+" e maior que 5");
+if(10 > 20)
+{
+    console.log("DENTRO DO IF");
+}
 else
-    console.log("Numero "+num+" e menor ou igual a 5");
+{
+    console.log("DENTRO DO ELSE");
+}
+console.log("DEPOIS DO ELSE");

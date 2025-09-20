@@ -1607,7 +1607,8 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	char auxTipo[7], mensagemPronta[200], ident[TF], valor[TF];
 	char nomeVarFun[30];
 	
-	int chave=0, flagFun = 0; //contator de chaver para saber quando sair de uma função
+	int chave=0, flagFun = 0, flagIF = 0, chaveIF = 0; //contator de chaver para saber quando sair de uma função
+	int condicao;
 	
 	while(auxPrograma != NULL)
 	{
@@ -1666,32 +1667,52 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 		 	else
 		 	if(strcmp(auxToken->info,"if") == 0)
 		 	{
-		 		//vou ter que tratar se a condicao é verdadeira
-		 		// se for verdadeira a funcao de controle vai retornar 1 se nao retorna 0
-		 		//se retornar 1 entra no if de verdadeiro e executa
-		 		//se for falso vai para o else se ele existir
-		 		//mas antes de executar o else tem que ver se o não tem um if abaixo
-		 			//auxToken = auxPrograma->prox->token (vou precisar de um aux)
-		 		//se caso nao houver outro if de condicao apenas tratar como else
+		 		//retorna 1 - verdadeira || 0 - falsa
+		 		condicao = controleCondicao(auxToken,*pv); //auxToken == if
 		 		
-		 		//tenho que passar o token e a pilha de variavel, porque a condição pode ser
-		 		//(var > 5)
-		 		//retorna 1 se a condicao for verdadeira
-		 		//retorna 0 se a condicao for falsa
-		 		atualToken = auxToken; //to no if
-		 		condicao = controleCondicao(atualToken,pv);
-		 		
-		 		if(condicao == 1)
+		 		if(condicao == 1) //condicao verdadeira
 		 		{
-		 			//posiciona o atualToken para o bloco do if
+		 			// flag para saber que executou o if por tanto não vai fazer o else
+		 			flagIF = 1;
+		 			auxPrograma = auxPrograma->prox; //pulei a condicao do if
+		 			auxPrograma = auxPrograma->prox; //pulei a chave
+		 			auxToken = auxPrograma->token;
 				}
 				else
 				{
-					//posiciona o atualToken para o bloco do else
+					while(auxToken != NULL && strcmp(auxToken->info,"}") != 0)
+					{
+						auxPrograma = auxPrograma->prox;
+						auxToken = auxPrograma->token;
+					}
+					auxPrograma = auxPrograma->prox;
+					auxToken = auxPrograma->token; //estamos no suposto else!
+					
+					if(strcmp(auxToken->info, "else") == 0)
+					{
+						auxPrograma = auxPrograma->prox;
+						if(strcmp(auxPrograma->token->info, "{") == 0)
+							auxPrograma = auxPrograma->prox;
+						auxToken = auxPrograma->token;
+					}
 				}
-				//tenho que fazer o auxToken pular os bloco que nao foi executado
-				//se executou o if eu tenho que pular o bloco do else para assim continuar
-				//a execucao normal do programa
+			}
+			else //flagIF == 1 indica que executou o if anterior do else
+			if(strcmp(auxToken->info, "else") == 0 && flagIF == 1)
+			{
+				auxPrograma = auxPrograma->prox;
+				if(strcmp(auxPrograma->token->info, "if") != 0)
+				{
+					while(auxPrograma != NULL && strcmp(auxPrograma->token->info, "}") != 0)
+						auxPrograma = auxPrograma->prox; 
+				}
+				auxToken = auxPrograma->token;
+				flagIF = 0;
+			}
+			else
+			if(strcmp(auxToken->info, "}") == 0 && flagIF == 1)
+			{
+				flagIF = 0;
 			}
 			else
 			if(auxToken->prox != NULL && strcmp(auxToken->info,"console") == 0 && strcmp(auxToken->prox->info,".log") == 0) 
@@ -1863,7 +1884,7 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 				    token[j++] = linha[i++]; // guarda o ponto
 				
 				    // guarda até encontrar '(' ou algum delimitador
-				    while(linha[i] != '(' && identificador(linha[i]) == 1)
+				    while(linha[i] != '(' && identificadorCarac(linha[i]) == 1)
 				        token[j++] = linha[i++];
 				
 				    token[j] = '\0';
