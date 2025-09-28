@@ -7,7 +7,6 @@
 
 #define TF 100
 
-//#include "TAD-Pilha.h"
 //#include "TAD-PilhaLg.h" //TAD da pilha para manipular nossa lista generalizada
 
 //estrutura que vai armazenar nossos tokens
@@ -36,7 +35,7 @@ struct TpVariavel
 };
 typedef struct TpVariavel Variavel;
 
-//estrutura que vai conter as informacao para o controle de exibiicao do nosso codigo
+//estrutura que vai conter as informacao para o controle de exibicao do nosso codigo
 struct TpControle
 {
 	int chave, l, c;
@@ -90,8 +89,7 @@ struct TpListaEncadeada
 };
 typedef struct TpListaEncadeada listaEncadeada;
 
-//Estrutura da Lista Generalizada
-
+//estrutura da Lista Generalizada
 union info_lista
 {
 	int valor;
@@ -146,12 +144,13 @@ void popChaves(Chaves **chaves, int *cont)
 	}
 }
 
-// -- TAD LISTA GEN ---
 
+// -- TAD LISTA GEN ---
 void initLG(ListaGen **lista)
 {
 	*lista = NULL;
 }
+
 
 // -- TAD PILHA CONTROLE --
 
@@ -179,7 +178,7 @@ void pushC(Controle **c, int chave, Programa *p, int lin, int col)
 	*c = nova;
 }
 
-//funcaoo que vai retirar as informacao da nossa pilha de controle
+//funcao que vai retirar as informacao da nossa pilha de controle
 Controle popC(Controle **c)
 {
 	Controle *aux, cAtual;
@@ -332,7 +331,7 @@ void pushRF(retornoFuncoes **rf, Programa *programa, Token *token)
 	retornoFuncoes *nova = (retornoFuncoes*)malloc(sizeof(retornoFuncoes));
 	nova->programa = programa;
 	nova->token = token;
-	nova->tipoRetorno = 0; //indica que não existe retorno
+	nova->tipoRetorno = 0; //indica que nao existe retorno
 	nova->prox = *rf;
 	*rf = nova;
 }
@@ -385,15 +384,6 @@ void pushPV(Variavel **pilhaVar, Variavel auxVar)
 		
 	nova->prox = *pilhaVar;
 	*pilhaVar = nova;
-	
-	//DEBUG
-	/*
-	printf("\n\nPUSH realizado");
-	printf("\nIdentificador: %s",(*pilhaVar)->identificador);
-	printf("\nValor: %s",(*pilhaVar)->valor);
-	printf("\nPonteiro: %p",(*pilhaVar)->ponteiro);
-	printf("\nTipo: %d", (*pilhaVar)->tipo);
-	*/
 }
 
 //funcao que vai retirar uma variavel da nossa pilha de variavel
@@ -425,7 +415,7 @@ void popIdentificadorPV(Variavel **pv, char *identificador)
 	{
 		if(strcmp(atual->identificador, identificador) == 0)
 		{
-			if(ant == NULL) //1ï¿½ caso
+			if(ant == NULL) //primeiro caso
 				*pv = atual->prox;
 			else
 				ant->prox = atual->prox;
@@ -522,7 +512,6 @@ void AdicionarToken(Programa *l, char *info)
             aux = aux->prox;
         aux->prox = caixa;
     }
-   // printf("Token adicionado: '%s'\n", info);  // Teste para ver se separou os token certos
 }
 
 //funcao que insere uma caixa de programa na lista para que cada caixa aponte para uma linha de tokens
@@ -556,19 +545,16 @@ void AdicionarTokenLinha(Token **token, char *info)
 	}
 }
 
-//funcao que verifica se caracter é um operador matemático (utilizado na hora verificação de expressão matemática)
+//funcao que verifica se caracter é um operador matematico (utilizado na hora verificação de expressão matematica)
 int operadorMatematico(char *caracter)
 {
-	//printf("\n\nENTROU NA FUNCAO OPERADOR!!!");
 	if(strcmp(caracter,"+")==0 || strcmp(caracter,"-")==0 || 
 	strcmp(caracter,"*")==0 || strcmp(caracter,"/")==0 ||
 	strcmp(caracter,"%") == 0 || strcmp(caracter,"**") == 0)
 	{
-		//printf("\n\nEH OPERADOR!!!");
 		return 1;
 	}
 		
-	//printf("\n\nNAO EH OPERADOR MATEMATICOOOOO!!!");
 	return 0;
 }
 
@@ -614,6 +600,7 @@ int identificadorCarac(char caracter)
 	return 0;
 }
 
+//funcao que verifica que o caracter e um numero
 int numeric(char *caracter)
 {
 	if(caracter[0] >= 48 && caracter[0] <= 57)
@@ -621,7 +608,7 @@ int numeric(char *caracter)
 	return 0;
 }
 
-//CAIO - POSICIONAR JUNTO COM FUNCOES PARECIDAS
+//funcao para saber o tipo da variavel 
 int isTipoVariavel(char *info) 
 {
 	if(strcmp(info, "const") == 0) //e uma const
@@ -666,7 +653,6 @@ struct pilhaoperador
 	struct no_pilhaOperador *topo;
 };
 typedef struct pilhaoperador PilhaOperador;
-
 
 void initPLG(PilhaLG **P)
 {
@@ -761,29 +747,30 @@ void popOperador(PilhaOperador **P, char *operador)
 	free(noRemovido);
 }
 
-//funcao que busca operadores matemáticos (utilizado para tratar caso seja uma expressão matemática)
+//funcao que busca operadores matematicos (utilizado para tratar caso seja uma expressão matematica)
 int procuraOperador(Token* procura)
 {
-	//printf("\n\n\tEntrou na funcao procura");
 	while(procura != NULL && !operadorMatematico(procura->info))
 		procura = procura->prox;
-	//printf("\n\n\tSaiu do While");
+		
 	if(procura != NULL)
 		return 1;
 	return 0;
 }
 
+//funcao que destroi a listagen de expressoes matematica
 void destroiLista(ListaGen **lista)
 {
-	 if((*lista)!=NULL)
+	 if(*lista != NULL)
 	 {
-	 		destroiLista(&(*lista)->cabeca);
-	 		destroiLista(&(*lista)->cauda);
-	 		free(*lista);
-	 		*lista = NULL;
+	 	destroiLista(&(*lista)->cabeca);
+	 	destroiLista(&(*lista)->cauda);
+	 	free(*lista);
+	 	*lista = NULL;
 	 }
 }
 
+//funcao que exibe a listagen de expressoes matematica
 void exibeLG(ListaGen *lista)
 {
 	if(lista == NULL)
@@ -801,6 +788,7 @@ void exibeLG(ListaGen *lista)
 	}		
 }
 
+//funcao que constroi a listagen para tratar expressoes matematica
 void constroiLG(ListaGen **lista, Token *token)
 {
 	char auxO[3], auxF[20];
@@ -809,88 +797,80 @@ void constroiLG(ListaGen **lista, Token *token)
 	PilhaLG *P;
 	initPLG(&P);
 	
-	//printf("\nEntrou na CONSTROI");
-	if((*lista)!=NULL)
-		destroiLista(&(*lista)); //RESETA a lista caso j‡ foi usada para uma expressao anterior
+	if(*lista != NULL)
+		destroiLista(&(*lista)); //RESETA a lista caso ja foi usada para uma expressao anterior
 	
 	aux = (*lista);
-		while(token!=NULL)
+	while(token!=NULL)
+	{
+		if(strcmp(token->info,"(")==0)
 		{
-			//printf("\nVALOR DO TOKEN: %s",(token)->info);
-			if(strcmp(token->info,"(")==0)
-			{
-				//printf("\nABRE PARENTESE");
-				nova = novaProf();
-				aux->cauda = nova;
-				token = token->prox;
-				if(numeric(token->info))
-                {
-                //	printf("\nVALOR DO TOKEN: %s",(token)->info);
-                //	printf("\nNUMERIC DO PARENTESE");
-                    auxV = atoi(token->info);
-                    nova->cabeca = novaV(auxV);
-                }
+			nova = novaProf();
+			aux->cauda = nova;
+			token = token->prox;
+			if(numeric(token->info))
+            {
+                auxV = atoi(token->info);
+                nova->cabeca = novaV(auxV);
+            }
 					
-				//if(isVariavel(caracter))
-				//if(isFuncao(caracter))
-				aux = nova->cabeca;
-				pushPLG(&P,nova);
-			}
-			else if(numeric(token->info))
+			aux = nova->cabeca;
+			pushPLG(&P,nova);
+		}
+		else 
+		if(numeric(token->info))
+		{
+            auxV = atoi((token)->info);
+			nova = novaV(auxV);
+			if(aux == NULL)
+				(*lista) = aux = nova;
+			else
 			{
-			//	printf("\nNUMERIC");
-                auxV = atoi((token)->info);
-                //printf("\n\n %d",auxV);
-				nova = novaV(auxV);
-				if(aux == NULL)
-					(*lista) = aux = nova;
-				else
-				{
-				//	printf("\n\nEntrou no ELSE");
-					aux->cauda = nova;
-					aux = nova;
-				}
-			}
-			else if(operadorMatematico(token->info))
-			{
-			//	printf("\n OPERADOR");
-				strcpy(auxO,token->info);
-				nova = novaO(auxO);
 				aux->cauda = nova;
 				aux = nova;
 			}
-            /*
-             else if(funcao(token->info)
-             {
-             }
-             else if(variavel(token->info)
-             {
-             }
-             */
-			else if(strcmp(token->info,")")==0)
-			{
-			//	printf("\n FECHA PARENTESE");
-				popLG(&P,&aux);
-			}
-				
-			
-			token = token->prox;
 		}
-		exibeLG(*lista);
+		else 
+		if(operadorMatematico(token->info))
+		{
+			strcpy(auxO,token->info);
+			nova = novaO(auxO);
+			aux->cauda = nova;
+			aux = nova;
+		}
+        /*
+        else if(funcao(token->info)
+        {
+        }
+        else if(variavel(token->info)
+        {
+        }
+        */
+		else 
+		if(strcmp(token->info,")")==0)
+		{
+			popLG(&P,&aux);
+		}	
+		token = token->prox;
+	}
+	exibeLG(*lista);
 }
 
+//funcao que inicializa a pilha de operador
 void initPOperador(PilhaOperador **P)
 {
 	*P = (PilhaOperador*)malloc(sizeof(PilhaOperador));
 	(*P) -> topo = NULL;
 }
 
+//funcao que inicializa a pilha de valor
 void initPValor(PilhaValor **P)
 {
 	*P = (PilhaValor*)malloc(sizeof(PilhaValor));
 	(*P) -> topo = NULL;
 }
 
+//funcao que define a prioridade dos operadores a ser resolvidos
 int prioridade(char *operador) 
 {
     if(strcmp(operador, "+") == 0 || strcmp(operador, "-") == 0) 
@@ -901,7 +881,7 @@ int prioridade(char *operador)
     else 
 	if(strcmp(operador, "**") == 0)
         return 3;
-    return 0; // Para operadores não reconhecidos
+    return 0; //para operadores não reconhecidos
 }
 
 // %(resto) int ou float só precisa do float pq o int usa %
@@ -944,6 +924,7 @@ float Expoen(float nume, float Ex)
 	return res.f;
 }
 
+//funcao que calcula a equacao matematica
 float calculaEquacao(ListaGen *caixa) 
 {
     PilhaOperador *POperador;
@@ -955,15 +936,19 @@ float calculaEquacao(ListaGen *caixa)
     char op[3];
     float resultado, subResultado, val1, val2;
     
-    while(!Nula(caixa)) {
+    while(!Nula(caixa)) 
+	{
         if(caixa->terminal == 'V') 
             pushValor(&PValor, caixa->no.valor);
-        else if(caixa->terminal == 'P')
+        else 
+		if(caixa->terminal == 'P')
         {
         	float subResultado = calculaEquacao(caixa->cabeca);
     		pushValor(&PValor, subResultado);
         }
-        else if(caixa->terminal == 'O') {
+        else 
+		if(caixa->terminal == 'O') 
+		{
             
 			while(!isEmptyPilhaOperador(POperador) && prioridade(caixa->no.operador) <= prioridade(POperador->topo->operador)) 
 			{	
@@ -971,66 +956,72 @@ float calculaEquacao(ListaGen *caixa)
                 popValor(&PValor, &val1);
                 popValor(&PValor, &val2);
                 
-                if (strcmp(op, "+") == 0) {
+                if(strcmp(op, "+") == 0)
 				    pushValor(&PValor, val2 + val1);
-				} else if (strcmp(op, "-") == 0) {
+				else 
+				if(strcmp(op, "-") == 0)
 				    pushValor(&PValor, val2 - val1);
-				} else if (strcmp(op, "*") == 0) {
+				else 
+				if(strcmp(op, "*") == 0)
 				    pushValor(&PValor, val2 * val1);
-				} else if (strcmp(op, "/") == 0) {
+				else 
+				if(strcmp(op, "/") == 0)
 				    pushValor(&PValor, val2 / val1);
-				} else if (strcmp(op, "%") == 0) {
-					pushValor(&PValor, restoF(val1, val2));
-				} else if (strcmp(op, "//") == 0) {
+				else
+				if(strcmp(op, "%") == 0)
+					pushValor(&PValor, restoF(val1, val2)); 
+				else 
+				if(strcmp(op, "//") == 0)
 					pushValor(&PValor, (int)val2/(int)val1);
-				} else if (strcmp(op, "**") == 0) {
+				else 
+				if(strcmp(op, "**") == 0)
 				    pushValor(&PValor, Expoen(val2, val1));
-				}
             }
             pushOperador(&POperador, caixa->no.operador);
         }
         caixa = caixa->cauda;
     }
     
-    while(!isEmptyPilhaOperador(POperador)) {
+    while(!isEmptyPilhaOperador(POperador)) 
+	{
         popOperador(&POperador, op);
         popValor(&PValor, &val1);
         popValor(&PValor, &val2);
      
-        if (strcmp(op, "+") == 0) {
+        if(strcmp(op, "+") == 0)
 		    pushValor(&PValor, val2 + val1);
-		} else if (strcmp(op, "-") == 0) {
+		else 
+		if(strcmp(op, "-") == 0)
 		    pushValor(&PValor, val2 - val1);
-		} else if (strcmp(op, "*") == 0) {
+		else 
+		if(strcmp(op, "*") == 0)
 		    pushValor(&PValor, val2 * val1);
-		} else if (strcmp(op, "/") == 0) {
+		else 
+		if(strcmp(op, "/") == 0)
 		    pushValor(&PValor, val2 / val1);
-		} else if (strcmp(op, "%") == 0) {
+		else 
+		if(strcmp(op, "%") == 0)
 			pushValor(&PValor, restoF(val1, val2));
-		} else if (strcmp(op, "//") == 0) {
+		else 
+		if(strcmp(op, "//") == 0)
 			pushValor(&PValor, (int)val2/(int)val1);
-		} else if (strcmp(op, "**") == 0) {
+		else 
+		if(strcmp(op, "**") == 0)
 		    pushValor(&PValor, Expoen(val2, val1));
-		}	
     }
     popValor(&PValor, &resultado);
     return resultado;
 }
 
-
-
+//funcao que busca uma variavel na pilha pelo identificador
  Variavel* buscaVariavel(char *aux, Variavel *P)
 {
-	//printf("\n\nEntrou na buscaVariavel");
-	
 	Variavel *andar = P;
 	while(andar != NULL && strcmp(aux,andar->identificador)!=0)
-	{
-		//printf("\n\nEntrou no While");
 		andar = andar->prox;
-	}
 	return andar;
 }
+
 
 // -------------- FUNCOES QUE TRATA O CONSOLE.LOG ------------------
 
@@ -1059,7 +1050,6 @@ void pulaEspacos(Token **linha)
 {
 	while(*linha != NULL && (strcmp((*linha)->info," ") == 0 || strcmp((*linha)->info,"\t") == 0))
 		*linha = (*linha)->prox;
-	printf("\n     pulou espaco (pularEspacos)");
 }
 
 //funcao que verifica qual o tipo da expressao presente no console.log
@@ -1070,44 +1060,32 @@ char tipoExpressao(Token *atual)
 
     Token *anterior = NULL;
 
-	printf("\n22-  antes do while principal(tipoExpressao)");
     while(atual != NULL) 
     {
         if(strcmp(atual->info, " ") != 0)
             anterior = atual;
 
-		printf("\n23-  dentro do while principal(tipoExpressao)");
         //operador '+' indica concatenação de strings ou operação matemática
         if(strcmp(atual->info,"+") == 0 && anterior != NULL && atual->prox != NULL) 
         {
-        	printf("\n24-  dentro do if se o token foi um '+'(tipoExpressao)");
-
             Token *proximo = atual->prox;
 
             if(ehString(anterior->info) && ehString(proximo->info)) 
                 concatenacaoString = 1;
             else
                 encontrouOperadorMatematico = 1;
-            printf("\n25-  apos descobrir soma ou concatenacao(tipoExpressao)");
         }
         if(strcmp(atual->info,",") == 0)
 		{
-			printf("\n24-  se caso for uma ","(tipoExpressao)");
-
 			//apenas marca fim do argumento, nada a fazer aqui
 		} 
         else 
 		if(operadorMatematico(atual->info))
-		{
-			printf("\n24- se caso for um operador matematico(tipoExpressao)");
 			encontrouOperadorMatematico = 1;
-		}
             
-
         atual = atual->prox;
     }
 
-	printf("\n26-  antes dos returno se eh M ou S(tipoExpressao)");
     if(concatenacaoString == 1) 
         return 'S'; //string ou concatenação
     if(encontrouOperadorMatematico == 1)
@@ -1124,10 +1102,7 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 	Variavel *pvAux;
 	initPV(&pvAux);
 	
-	printf("\n19- estou antes de chamar a funcao tipoExpressao (resol con log)");
-	
 	tipoExp = tipoExpressao(linha);
-	printf("\n20- estou apos chamar a funcao tipoExpressao (resol con log)");
 	if(tipoExp == 'M')
 	{
 		strcpy(caracter,"R");
@@ -1144,13 +1119,9 @@ Token *resolConLog(Programa *programa, Variavel *pv, Funcoes *funcoes)
 		
 		popPV(&pv,&pvAux);
 		strcpy(novo->info,pvAux->valor);
-		printf("\n21- estou dentro do if tipoExp == M (resol con log)");
 	}
 	else
-	{
-		printf("\21- estou dentro do else tipoExp == S (resol con log)");
 		novo = linha;
-	}
 	return novo;
 }
 
@@ -1180,7 +1151,6 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
     if(linha != NULL)
         pulaEspacos(&linha);
 
-	printf("\n4- Estou antes do if de pulas aspas (SEPARA EXPRESSOES)");
     //pula ' ou "
     if(linha != NULL && (strcmp(linha->info, "'") == 0 || strcmp(linha->info, "\"") == 0))
     {
@@ -1193,7 +1163,6 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
 
         if(linha != NULL)
             linha = linha->prox;
-        printf("\n5- Estou saindo do if de pulas aspas (SEPARA EXPRESSOES)");
     }
 
     if(linha != NULL)
@@ -1211,14 +1180,12 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
     if(linha != NULL)
         linha = linha->prox;
         
-	printf("\n6- Estou antes do while principal (SEPARA EXPRESSOES)");
     //loop principal
     while(linha != NULL && linha->prox != NULL && strcmp(linha->prox->info, ")") != 0)
     {
         if(linha != NULL)
             pulaEspacos(&linha);
 		
-		printf("\n7- Estou dentro do while e antes do if que compara aspas (SEPARA EXPRESSOES)");
         if(strcmp(linha->info, "'") != 0 && strcmp(linha->info, "\"") != 0)
         {
             if(strcmp(linha->info, ",") == 0)
@@ -1231,14 +1198,12 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
                 cabeca = novaP;
                 c = NULL;
 				
-				printf("\n8- Estou antes da chamada da funcao resolConLog (SEPARA EXPRESSOES)");
                 token = resolConLog(cabeca, *pv, funcoes);
                 if(token != NULL && atr != NULL)
                 {
                     atr->prox = token;
                     token->prox = linha;
                 }
-                printf("\n9- Estou apos a chamada da funcao resolConLog (SEPARA EXPRESSOES)");
 
                 if(linha != NULL)
                     strcpy(div, linha->info);
@@ -1246,14 +1211,10 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
                 atr = linha;
             }
             else
-            {
-            	printf("\n10- Estou no else de que se for diferente de virgula (SEPARA EXPRESSOES)");
 				AdicionarTokenLinha(&c,linha->info);
-            }
         }
         else // strings
 		{
-		    printf("\n11- Estou no else de pulas aspas (SEPARA EXPRESSOES)");
 		    buffer[0] = '\0'; //zera o buffer
 		
 		    //guarda o tipo de aspa
@@ -1283,12 +1244,9 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
             linha = linha->prox;
     }
     
-    printf("\n16- Antes do ultimo if (SEPARA EXPRESSOES)");
-
     //ultimo token antes do )
     if(linha != NULL && strcmp(linha->info, ")") == 0)
     {
-    	printf("\n17- Dentro do ultimo if antes do ')' (SEPARA EXPRESSOES)");
         novaP = CaixaPrograma();
         novaP->token = c;
 
@@ -1301,7 +1259,6 @@ Programa *separaExpressoes(Programa *ant, Variavel **pv, Funcoes *funcoes)
         }
     }
 
-	printf("\n18- antes do return (SEPARA EXPRESSOES)");
     return atual;
 }
 
@@ -1342,14 +1299,14 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
 
             if(atual != NULL && flag)
             {
-                // >>> ignorar virgula ou +
+                //ignorar virgula ou +
                 if(strcmp(atual->info, ",") == 0 || strcmp(atual->info, "+") == 0)
                 {
                     atual = atual->prox; // apenas pula
                 }
                 else
                 {
-                    // string literal
+                    //string literal
                     if(strcmp(atual->info, "\"") == 0 || strcmp(atual->info, "'") == 0)
                     {
                         atual = atual->prox;
@@ -1372,7 +1329,7 @@ void tratarConLog(Programa *programa, Variavel *pv, char *mensagemPronta)
                         atual = atual->prox;
                     }
 
-                    // adiciona espaço se o próximo token não for ')'
+                    //adiciona espaço se o próximo token não for ')'
                     if(atual != NULL && strcmp(atual->info, ")") != 0)
                         strcat(mensagemPronta, " ");
                 }
@@ -1440,7 +1397,6 @@ int controleCondicao(TpToken *atual, Variavel *pv)
 	
 	linha = linha->prox; //pulando o if
 	linha = linha->prox; //pulando (
-	//linha = linha->prox; //estou na primeira condicao
 	
 	//verificando se temos uma negacao
 	if(linha != NULL && strcmp(linha->info,"!") == 0)
@@ -1577,21 +1533,20 @@ int controleCondicao(TpToken *atual, Variavel *pv)
 		return -1; //nao podemos comparar uma string com um float
 }
 
-//CAIO - ESSA FUNCAO SERIA A EXECUCAO DO PROGRAMA EM SI, FEITA APENAS A DECLARACAO DE VARIAVEL
+//funcao que executa o programa
 void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 {
 	Variavel auxVar, *auxPilha=NULL;
-	//Variavel *pv;
-	//initPV(&pv);
+	
 	Token *auxToken, *auxProcura, *linhaAux, *atualToken, *retToken;
 	Programa *auxPrograma, *pontConLog, *auxLocalFun, *atualProgm, *retProg; //pontConLog = endereço de onde tem um console.log
 	auxPrograma = programa;
 	
-	//lista encadeada que vai guardar as informações dos console.log
+	//lista encadeada que vai guardar as informacoes dos console.log
 	listaEncadeada *listaConLog;
 	initLE(&listaConLog);
 	
-	//Lista Generalizada para calcular expressões matemáticas
+	//lista generalizada para calcular expressoes matematicas
 	ListaGen *listaCalcula;
 	initLG(&listaCalcula);
 	
@@ -1603,7 +1558,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	Chaves *chaves;
 	initChaves(&chaves);
 	
-	//Salvar o tipo de variavel quando declarada
+	//salvar o tipo de variavel quando declarada
 	char auxTipo[7], mensagemPronta[200], ident[TF], valor[TF];
 	char nomeVarFun[30];
 	
@@ -1615,24 +1570,23 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 		auxToken = auxPrograma->token;
 		while(auxToken != NULL)
 		{
-			//funcao que busca uma funcao e retorna o local dela
+			//funcao que busca uma function e retorna o local dela
 			auxLocalFun = buscaFuncoes(funcoes, auxToken->info);
-			//printf("\nLocal da function OLA: %p",auxLocalFun); // PARA TESTE
 			
-			//ESTA COM ERRO NA COMPARACAO
-			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) //verifica se o token é DECLARAÇÃO de variavel LET ou CONST
+			//verifica se o token é DECLARAÇÃO de variavel LET ou CONST
+			if(isTipoVariavel(auxToken->info) == 1 || isTipoVariavel(auxToken->info) == 0) 
 			{
-				strcpy(auxTipo, auxToken->info); // Salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
+				strcpy(auxTipo, auxToken->info); //salvar o tipo da variavel para posteriormente validar e tratar de forma adequada cada tipo
 				auxToken = auxToken->prox;
-				strcpy(auxVar.identificador, auxToken->info); //Atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
+				strcpy(auxVar.identificador, auxToken->info); //atribui o nome da variavel que SEMPRE estara na proxima caixa. Ou seja sempre será: <<tipo>> nome =
 				strcpy(nomeVarFun, auxToken->info); //guardando o nome da variavel
 				auxToken = auxToken->prox; //esta apontando para o =
 				
-				auxVar.ponteiro = auxPrograma; //IMPLEMENTAR LOGICA DE PONTEIRO!!!!!!!!
+				auxVar.ponteiro = auxPrograma;
 							
 				if(strcmp(auxTipo,"let")==0)
 					auxVar.tipo = 0;
-				else //Entao e CONST
+				else //entao e CONST
 					auxVar.tipo = 1;
 
 				auxLocalFun = buscaFuncoes(funcoes, auxToken->prox->info);
@@ -1644,7 +1598,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					if(procuraOperador(auxProcura))
 					{	
 						constroiLG(&listaCalcula, auxToken);//preciso construir a listagen a partir do token
-						// Converte o float para string usando sprintf()
+						//converte o float para string usando sprintf()
 	    				sprintf(auxVar.valor, "%2.f", calculaEquacao(listaCalcula));
 					}
 					else
@@ -1654,14 +1608,14 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					}
 
 					//estou empilhando tudo menos o valor, o valor vai ser adicionado depois
-					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+					pushPV(pv,auxVar);
 				}
 				else
 				{
 					//passando um valor vazio por enquanto
 					strcpy(auxVar.valor, "");
 					//estou empilhando tudo menos o valor, o valor vai ser adicionado depois
-					pushPV(pv,auxVar); //Passar a pilha, e a variavel
+					pushPV(pv,auxVar);
 				}
 			}
 		 	else
@@ -1672,7 +1626,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 			
 			    if(condicao == 1) //condicao verdadeira
 			    {
-			        // flag para saber que executou o if por tanto não vai fazer o else
+			        //flag para saber que executou o if por tanto não vai fazer o else
 			        flagIF = 1;
 			
 			        auxPrograma = auxPrograma->prox; //pulei a condicao do if
@@ -1698,10 +1652,10 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 			        	auxPrograma = auxPrograma->ant;
 			    }
 			}
-			else // flagIF == 1 indica que executou o if anterior e precisa pular o else
+			else //flagIF == 1 indica que executou o if anterior e precisa pular o else
 			if(strcmp(auxToken->info, "else") == 0 && flagIF == 1)
 			{
-			    // pular o bloco do else inteiro
+			    //pular o bloco do else inteiro
 			    auxPrograma = auxPrograma->prox;
 			    if(strcmp(auxPrograma->token->info, "if") != 0)
 			    {
@@ -1726,8 +1680,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					tratarConLog(pontConLog, *pv, mensagemPronta);
 					enqueueLE(&listaConLog, mensagemPronta);
 					
-					printf("\n\nMensagem console.log: %s",mensagemPronta);
-					//getch();
+					//printf("\n\nMensagem console.log: %s",mensagemPronta);
 				}
 				pontConLog = NULL;	
 			}
@@ -1735,17 +1688,11 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 			if(strcmp(auxToken->info,"return") == 0)//return
             {
                 auxToken = auxToken->prox; //pulando "return"
-                //tenho que saber qual o tipo da variavel que eu vou retorna - OK
-                //eu tenho dar pop na pilha de function ja que o return encerra uma function - OK
-                //tenho que retirar a chave do cont de chave - OK
-                //tenho que voltar os ponteiros principais do programa para o local de chamado - OK
-                //tenho que atribuir o valor na variavel que chamou a function - OK
                 
 				//informacoes da variavel que esta sendo retornada na function
                 auxPilha = buscaVariavel(auxToken->info,*pv);
                 strcpy(ident, auxPilha->identificador);
                 strcpy(valor, auxPilha->valor);
-                //printf("\nVALOR RETORNADO DA FUNCTION: %s",valor);
                 
                 //retirando a chamada de function da pilha e voltando para onde chamou
 				popRF(&rf,&retProg,&retToken);
@@ -1753,14 +1700,10 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				auxPrograma = retProg;
                 auxToken = auxPrograma->token;
                 
-                
                 //pulando a declaracao da variavel ja que pode ser const num = soma();
                 if(strcmp(auxToken->info,"const") == 0 || strcmp(auxToken->info,"let") == 0)
                 	auxToken = auxToken->prox;
                 
-                //printf("\n\n NOME DA MINHA VARIAVEL - nomeVarFun: %s",nomeVarFun);
-                //printf("\n NOME DA MINHA VARIAVEL - auxToken->info: %s",auxToken->info);
-                //getch();
 				//buscando a variavel na pilha
 				auxPilha = buscaVariavel(auxToken->info,*pv); 
                 if(auxPilha != NULL) //achei a variavel
@@ -1775,7 +1718,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 					
             }
             else
-			if(auxLocalFun != NULL || !isEmptyRF(rf)) // function - retToken e retProg
+			if(auxLocalFun != NULL || !isEmptyRF(rf)) //function - retToken e retProg
             {
                 if(auxLocalFun != NULL)
                 {
@@ -1881,7 +1824,7 @@ void lerArquivo(char *nomeArquivo, Programa **programa)
 				    j = 0;
 				    token[j++] = linha[i++]; // guarda o ponto
 				
-				    // guarda até encontrar '(' ou algum delimitador
+				    //guarda até encontrar '(' ou algum delimitador
 				    while(linha[i] != '(' && identificadorCarac(linha[i]) == 1)
 				        token[j++] = linha[i++];
 				
@@ -1957,7 +1900,6 @@ void ExibirPrograma(Programa *programa)
             contToken++;
         }
         printf("\n");
-        //printf("\n");
         linhaAtual = linhaAtual->prox;
         tokenAtual = linhaAtual->token;
         numLinha++;
@@ -1967,10 +1909,7 @@ void ExibirPrograma(Programa *programa)
 //funcao que exibe as variaveis e informacoes dentro da memoria ram
 void ram(Variavel *pv)
 {
-	//se caso for colocar moldura depois
-	//limpaTela(1, 1, 90, 90);
 	system("cls");
-	//gotoxy(1,1);
 	
 	printf("\n\t\t----------- MEMORIA RAM ----------\n");
 	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
@@ -1994,64 +1933,15 @@ char menu()
 	return getch();
 }
 
-// ------------------//-----------------------//--------------------//------------//---------
-//FUNCOES QUE AINDA FALTA CRIAR
-// ------------------//-----------------------//--------------------//------------//---------
-
-//void limpaTela(int lin1, int lin2, int col1, int col2)
-
-//TENHO QUE TERMINAR ESSA FUNï¿½ï¿½ES PARA EXIBIR LINHA A LINHA DO PROGRAMA
-//funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
-//void exibirExecucao(Programa *programa)
-//{
-//	Token *linha;
-//	
-//	while(pProg != NULL)
-//	{
-//		linha = programa->token;
-//		while(linha != NULL)
-//		{
-//			printf("%s",linha->token);
-//			linha=linha->prox;
-//		}
-//		printf("\n");
-//		pProg = pProg->prox;
-//	}
-//}
-
-////funï¿½ï¿½o que exibe o codigo linha a linha conforme for dando enter
-//void mostrarLinha(Programa *programa)
-//{
-//	Token *token = programa->token;
-//	
-//	while(token != NULL)
-//	{
-//		printf("%s",token->token);
-//		token = token->prox;
-//	}
-//	
-//	printf("\n");
-//	Mostrar_Excucao(atual->prox);
-//}
-
-//void exibirFunction(Funcoes *f)
-
-//void mostrarLinha(Programa *p, int lin)
-
-//void posicionaCursor(Programa *p, int lin, int pos)
-
-
-
 //funcao que simula a execucao do nosso programa (FALTA FINALIZAR)
 void simulaExecucao(Programa **programa, Variavel **pv)
 {
 	//vai ser usado para o controle de toda a estrutura do programa que esta sendo compilado
-	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux; //FALTA CRIAR -- feito e comentado
+	Controle *se, *Rep, *seAux, *repAux, *ifAux, *aux;
 	int chaveAtual=0, lin=0, col=0, chave=0, flag=0, l=0, chaveFun=0, funL=0, cont=0;
 	
 	Programa *atual= NULL, *auxP = NULL;
-	//Programa *listaPrograma, *fun=NULL, *atr = NULL, *numUse=NULL, *print=NULL, *auxAtual;
-	
+		
 	//ponteiro que vamos usar para ler os tokens e andar no codigo .js
 	Variavel *pvAux = *pv;
 	Token *linha, *nova, *linha2;
@@ -2072,9 +1962,6 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	listaEncadeada *listaPrint, *auxLE; 
 	initLE(&listaPrint); 
 	
-	//limpaTela(1, 1, 90, 90); //FALTA CRIAR -- feito escopo e comentado
-	//gotoxy(1, 1);
-	
 	//chamando o menu de opcoes do programa
 	op = menu();
 	
@@ -2094,10 +1981,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				lerArquivo(nomeArquivo, &*programa);
 				
 				auxP = *programa;
-				//ExibirPrograma(auxP); //PARA TESTE
 				op = getch();
-				//printf("\nLocal da function OLA: %p",auxP); //PARA TESTE
-				//getch();
 
 				chave = 1;
 				while(auxP != NULL && chave > 0)
@@ -2138,144 +2022,24 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				}
 				atual = auxP; // volta pro início se não achou nada
 
-				
-				//exibeFuncoes(funcoes); //PARA TESTE
-
 				break;
 			
-			case 66: //F8 - executar programa !!!! TENHO QUE CONTINUAR ANALISANDO A LOGICA AQUI !!!!!!
-				//nao sei se estaria correto como estou passando
+			case 66: //F8 - executar programa
 				
-				//	destroiPilha(&pvAux); //Tem que RESETAR A PILHA TODA VEZ QUE CHAMAR A FUNÇÃO DNV
+				//destroiPilha(&pvAux); //Tem que RESETAR A PILHA TODA VEZ QUE CHAMAR A FUNÇÃO DNV
 				executaPrograma(atual, &pvAux, funcoes);
 				op = getch();
-//				limpaTela(1, 1, 90, 90);
-//				gotoxy(1,1);
-//				
-//				if(!isEmptyF(funcoes)) //FALTA CRIAR -- feito escopo e comentado
-//					exibirFunction(funcoes); //FALTA CRIAR -- feito escopo e comentado
-//				if(numUse == atual)
-//				{
-//					mostrarLinha(numUse,l); //FALTA CRIAR -- feito escopo e comentado
-//					lin = l;
-//					col = 1;
-//				}
-//				else
-//					mostrarLinha(numUse,l);
-//					
-//				gotoxy(col,lin); //move o cursor para proxima linha
-//				op = getch(); //ou talvez tenha que ser op = menu();
-//				gotoxy(col,lin);
-//				
-//				//continua a execuï¿½ï¿½o enquanto clicar enter = 13
-//				while(op == 13 && atual != NULL)
-//				{
-//					linha = atual->token;
-//					chave = 0; //nosso cotador que vai indicar dentro de quantos bloco estamos
-//					
-//					if(strcmp(linha->info, "{") == 0) //inicio de um bloco de execuï¿½ï¿½o
-//					{
-//					    // apenas avanï¿½a uma linha, nï¿½o precisa de contador
-//					    atual = atual->prox;
-//					    chave++;
-//					}
-////					vamos validar se estava em uma repetiï¿½ï¿½o se sim vamos retornar para o inicio dela
-////					e tambem validar se estava em um if para fazer chaveAtual receber chave
-////					para continuar a execuï¿½ï¿½o
-//					
-//					flag = 0;
-//					if(chave != chaveAtual)
-//					{
-//						if(chave > chaveAtual)
-//						{
-//							//codigo para avanï¿½ar nas repetiï¿½ï¿½es ou condiï¿½ï¿½es
-//							//se as chave aumentou significa que estamos entrando um novo bloco while ou if
-//							//se valida =1 vamos pular
-//							
-//							auxP = atual;
-//							l = lin;
-//							
-//							while(auxP != NULL && chave > chaveAtual)
-//							{
-//							    linha = auxP->token;
-//							    chave = 0;
-//							
-//							    if(strcmp(linha->info,"{") == 0) //se eu achei uma chave eu dou ++
-//							        chave++;
-//							
-//							    if(chave > chaveAtual) 
-//								{
-//							        l++;
-//							        auxP = auxP->prox;
-//							    }
-//							}
-//							
-//							//atualizando a linha atual e o contador de linhas
-//							if(auxP != NULL)
-//							{
-//								linha = auxP->token;
-//								atual = auxP;
-//								lin = l
-//							}
-//							else
-//							{
-//								flag = 1;
-//								atual = auxP
-//							}
-//						}
-//						if(chave < chaveAtual)
-//						{
-//							if(!isEmpty(rep))
-//							{
-//								topC(rep,&repAux);
-//								auxP = repAux->local;
-//								if(repAux->chave >= chave)
-//								{
-//									atual = repAux->local;
-//									linha = atual->token;
-//									chave = 0;
-//									if(strcmp(linha->info,"}") == 0)
-//									{
-//										chave++;
-//										atual = atual->prox;
-//									}
-//										
-//									linha = atual;
-//									chaveAtual = repAux->chave;
-//									lin = repAux->l;
-//									col = repAux->c;
-//									repAux = popC(&rep);
-//								}
-//							}
-//							if(!isEmptyC(se))
-//							{
-//								chaveAtual = chave;
-//								ifAux = pop(&se);
-//								seVar = 1;
-//							}
-//						}
-//					}
-//				}
 				
 				break;
 				
 			case 67: // F9 - memoria ram
-			//exibe o estado da pilha de variavel simulando a memoria ram
 				ram(pvAux);
 				op = getch();
 				
 				break;
 				
-			case 68: //F10 - exibir os prints
+			case 68: 
 				auxLE = listaPrint;
-				//limpaTela(1, 1, 90, 90);
-				//gotoxy(1,1);
-//				printf("\n *** Prints ***\n");
-//				while(auxLE != NULL)
-//				{
-//					printf("\n%s",auxLE->info);
-//					auxLE = auxLE->prox;
-//				}
 
 				ExibirPrograma(*programa);
 				op = getch();

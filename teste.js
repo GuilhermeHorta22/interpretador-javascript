@@ -1,11 +1,10 @@
-let num = 10;
-let num2 = 10;
-if(num != num2)
+let num = 50;
+if(num >= 10)
 {
-    console.log("NUMERO IGUAIS");
+    console.log("MAIOR QUE 10");
 }
-else
+if(num <= 60)
 {
-    console.log("NUMEROS DIFERENTE");
+    console.log("MENOR QUE 60");
 }
 console.log("ULTIMO CONSOLE.LOG");
