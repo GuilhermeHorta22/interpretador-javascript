@@ -1,7 +1,17 @@
-function exibeMensagem()
+function soma()
 {
-    console.log("Exibindo mensage funcao");
-    console.log("Dentro da funcao!");
+    let num1=5;
+    let num2=3;
+    let numero=10;
+    console.log("Resultado: "+numero);
+    if(numero >= 10)
+    {
+        console.log("Numero e maior que 10");
+    }
+    else
+    {
+        console.log("Numero e menor que 10");
+    }
 }
-exibeMensagem();
-console.log("Mensagem depois da funcao");
+soma();
+console.log("Fim da execucao!");

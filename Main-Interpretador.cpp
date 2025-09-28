@@ -1583,7 +1583,7 @@ void ram(Variavel *pv)
 }
 
 //funcao que executa o programa
-void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes, char nomeArquivo[50])
+void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes, char nomeArquivo[50], listaEncadeada **le)
 {
 	Variavel auxVar, *auxPilha=NULL;
 	
@@ -1832,29 +1832,34 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes, char n
 		//		auxToken = auxToken->prox;
 				
 			}
+			printf("\nToken atual: %s",auxToken->info);
+			getch();
 			auxToken = auxToken->prox;
 			
-			op = menuAdptado();//chamando para executar linha linha
-			system("cls");
-			switch(op)
-			{
-				case 67: // F9 - memoria ram
-					ram(*pv);
-					
-					break;
-					
-				case 68:
-					exibirLE(listaConLog);
-					
-					break;
-			}
-			system("cls");
-			exibeCodigo(nomeArquivo);
+			
 		}
+		op = menuAdptado();//chamando para executar linha linha
+		system("cls");
+		switch(op)
+		{
+			case 67: // F9 - memoria ram
+				ram(*pv);
+					
+				break;
+					
+			case 68:
+				exibirLE(listaConLog);
+					
+				break;
+		}
+		system("cls");
+		exibeCodigo(nomeArquivo);
+		
 		if(listaCalcula != NULL)
 			destroiLista(&listaCalcula);
 		auxPrograma = auxPrograma->prox;
-	} 
+	}
+	*le = listaConLog;
 }
 
 //funcao que le um arquivo que foi passado e armazena os tokens linha a linha
@@ -2045,16 +2050,17 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 						linha = linha->prox; //esta no nome da function
 						enqueueF(&funcoes, linha->info, l, auxP);
 						l++;
-						
+							
 						auxP = auxP->prox;
-						linha = auxP->token;
-						
+						linha
+						 = auxP->token;
+							
 						if(linha != NULL && strcmp(linha->info,"{") == 0)
 						{
 							chave++;
 							auxP = auxP->prox;
 						}
-						
+							
 						while(chave > 0) //chave maior que 0 indica que ainda está na function
 						{
 							linha = auxP->token;
@@ -2063,10 +2069,10 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 							else
 							if(strcmp(linha->info,"}") == 0)
 								chave--;
-							
+								
 							auxP = auxP->prox;
 						}
-						
+							
 						linha = auxP->token;
 						if(linha != NULL && strcmp(linha->info,"function") == 0)
 							chave = 1;
@@ -2082,7 +2088,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				if(nomeArquivo[0] != '\0')
 				{
 					exibeCodigo(nomeArquivo);
-					executaPrograma(atual, &pvAux, funcoes, nomeArquivo);
+					executaPrograma(atual, &pvAux, funcoes, nomeArquivo, &listaPrint);
 				}
 				else
 					printf("\nVoce ainda nao abriu um arquivo!\n");
@@ -2103,9 +2109,8 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 				break;
 				
 			case 68: 
-				auxLE = listaPrint;
-
-				ExibirPrograma(*programa);
+				exibirLE(listaPrint);
+				
 				op = getch();
 				
 				break;
