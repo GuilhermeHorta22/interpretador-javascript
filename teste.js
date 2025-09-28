@@ -1,7 +1,8 @@
 let num = 50;
+let var = 10;
 if(num >= 10)
 {
-    console.log("MAIOR QUE 10");
+    console.log("MAIOR QUE "+var);
 }
 if(num <= 60)
 {

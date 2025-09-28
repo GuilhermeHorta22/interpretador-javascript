@@ -276,11 +276,12 @@ void exibirLE(listaEncadeada *le)
 		printf("Conteudo lista encadeada: ");
 		while(aux != NULL)
 		{
-			printf("%s",aux->info);
+			printf("console.log(%s)\n",aux->info);
 			aux = aux->prox;
 		}
 		printf("\n");
 	}
+	getch();
 }
 
 
@@ -1533,8 +1534,56 @@ int controleCondicao(TpToken *atual, Variavel *pv)
 		return -1; //nao podemos comparar uma string com um float
 }
 
+//funcao de menu para quando ja estiver executando o programa
+char menuAdptado()
+{
+	printf("\n\n");
+	printf("[F9] - Memoria RAM \t"); //F9 = 67
+	printf("[F10] - Tela\t"); //F10 = 68
+	return getch();
+}
+
+//funcao que exibe o codigo .js na tela
+void exibeCodigo(char *nomeArquivo)
+{
+	char linha[200];
+	
+	FILE *ptr = fopen(nomeArquivo, "r");
+	
+	if(ptr == NULL)
+		printf("\nErro na abertura do arquivo!\n");
+	else
+	{
+		while(fgets(linha, sizeof(linha), ptr)) 
+	        printf("%s",linha);
+    	fclose(ptr);
+	}
+}
+
+//funcao que exibe as variaveis e informacoes dentro da memoria ram
+void ram(Variavel *pv)
+{
+	system("cls");
+	
+	if(pv != NULL)
+	{
+		printf("\n\t\t----------- MEMORIA RAM ----------\n");
+		printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
+		//printf("\n|Identificador \t|\t Valor \t|\t Ponteiro|");
+		while(pv != NULL)
+		{
+			printf("\n| %-*s | %-*s | %*p |",20,pv->identificador, 15,pv->valor, 20,pv->ponteiro);
+			//printf("|%s \t|\t %s\t|\t %p \t|",pv->identificador,pv->valor, pv->ponteiro);
+			pv = pv->prox;
+		}
+	}
+	else
+		printf("\nMemoria ram vazia!!!");
+	getch();
+}
+
 //funcao que executa o programa
-void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
+void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes, char nomeArquivo[50])
 {
 	Variavel auxVar, *auxPilha=NULL;
 	
@@ -1560,7 +1609,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 	
 	//salvar o tipo de variavel quando declarada
 	char auxTipo[7], mensagemPronta[200], ident[TF], valor[TF];
-	char nomeVarFun[30];
+	char nomeVarFun[30], op;
 	
 	int chave=0, flagFun = 0, flagIF = 0, chaveIF = 0; //contator de chaver para saber quando sair de uma função
 	int condicao;
@@ -1784,6 +1833,23 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes)
 				
 			}
 			auxToken = auxToken->prox;
+			
+			op = menuAdptado();//chamando para executar linha linha
+			system("cls");
+			switch(op)
+			{
+				case 67: // F9 - memoria ram
+					ram(*pv);
+					
+					break;
+					
+				case 68:
+					exibirLE(listaConLog);
+					
+					break;
+			}
+			system("cls");
+			exibeCodigo(nomeArquivo);
 		}
 		if(listaCalcula != NULL)
 			destroiLista(&listaCalcula);
@@ -1906,22 +1972,6 @@ void ExibirPrograma(Programa *programa)
     }
 }
 
-//funcao que exibe as variaveis e informacoes dentro da memoria ram
-void ram(Variavel *pv)
-{
-	system("cls");
-	
-	printf("\n\t\t----------- MEMORIA RAM ----------\n");
-	printf("\n| %-*s | %-*s | %-*s |",20,"Identificador",15,"Valor",20,"Ponteiro");
-	//printf("\n|Identificador \t|\t Valor \t|\t Ponteiro|");
-	while(pv != NULL)
-	{
-		printf("\n| %-*s | %-*s | %*p |",20,pv->identificador, 15,pv->valor, 20,pv->ponteiro);
-		//printf("|%s \t|\t %s\t|\t %p \t|",pv->identificador,pv->valor, pv->ponteiro);
-		pv = pv->prox;
-	}
-}
-
 //funcao que contem o menu do nosso simulador de execucao
 char menu()
 {
@@ -1951,6 +2001,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	initC(&Rep);
 	
 	char seVar='0', rep='0', op, nomeArquivo[50];
+	nomeArquivo[0] = '\0';
 	
 	//vai ser utilizado para o controle do for presente no programa .js
 	Variavel *var;
@@ -1971,6 +2022,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 	//repeticao que vai simular a execucao do programa
 	while(op != 27)
 	{
+		system("cls");
 		switch(op)
 		{
 			case 65: //F7 - Abrir arquivo .js
@@ -2027,13 +2079,25 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 			case 66: //F8 - executar programa
 				
 				//destroiPilha(&pvAux); //Tem que RESETAR A PILHA TODA VEZ QUE CHAMAR A FUNÇÃO DNV
-				executaPrograma(atual, &pvAux, funcoes);
+				if(nomeArquivo[0] != '\0')
+				{
+					exibeCodigo(nomeArquivo);
+					executaPrograma(atual, &pvAux, funcoes, nomeArquivo);
+				}
+				else
+					printf("\nVoce ainda nao abriu um arquivo!\n");
+				
 				op = getch();
 				
 				break;
 				
 			case 67: // F9 - memoria ram
-				ram(pvAux);
+			
+				if(pvAux != NULL)
+					ram(pvAux);
+				else
+					printf("\nMemoria ram esta vazia!!!\n");
+				
 				op = getch();
 				
 				break;
@@ -2053,6 +2117,7 @@ void simulaExecucao(Programa **programa, Variavel **pv)
 		}
 		
 		//chamando o menu de opcoes do programa
+		system("cls");
 		op = menu();
 	}
 }
