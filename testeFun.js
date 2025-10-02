@@ -1,8 +1,6 @@
 function soma()
 {
-    let num1=5;
-    let num2=3;
-    let numero=10;
+    let numero=5+2;
     console.log("Resultado: "+numero);
     if(numero >= 10)
     {

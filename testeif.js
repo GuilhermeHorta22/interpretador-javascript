@@ -1,6 +1,6 @@
-let valor = 50;
-let num = 10;
-let num2 = 60;
+let valor = 5*(3+8);
+let num = 5+5;
+let num2 = 360/6;
 if(valor >= num)
 {
     console.log("50 MAIOR QUE "+num);

@@ -1832,11 +1832,7 @@ void executaPrograma(Programa *programa, Variavel **pv, Funcoes *funcoes, char n
 		//		auxToken = auxToken->prox;
 				
 			}
-			printf("\nToken atual: %s",auxToken->info);
-			getch();
-			auxToken = auxToken->prox;
-			
-			
+			auxToken = auxToken->prox;	
 		}
 		op = menuAdptado();//chamando para executar linha linha
 		system("cls");
